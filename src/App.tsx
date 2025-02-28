@@ -1,25 +1,34 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+// Pages
+import Home from './pages/Home';
+import ActivityListing from './pages/ActivityListing';
+import Booking from './pages/Booking';
+
+// Components
+import Header from './components/common/header';
+import Footer from './components/common/footer';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/activities" element={<ActivityListing />} />
+            <Route path="/booking/:id" element={<Booking />} />
+            <Route path="*" element={<div className="text-center py-20">
+              <h1 className="text-4xl font-bold mb-4">Page Not Found</h1>
+              <p>The page you were looking for doesn't exist.</p>
+            </div>} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    </Router>
   );
 }
 
