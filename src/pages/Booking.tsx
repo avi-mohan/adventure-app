@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+// src/pages/Booking.tsx (update)
+import React from 'react';
 import { useParams, Link } from 'react-router-dom';
+import BookingForm from '../components/booking/bookingForm';
 
 // Sample activity data - in a real app, this would come from an API
 const activities = [
@@ -31,7 +33,6 @@ const activities = [
 
 const Booking = () => {
   const { id } = useParams<{ id: string }>();
-  const [participants, setParticipants] = useState(1);
   
   // Find the activity based on the id parameter
   const activity = activities.find(a => a.id === parseInt(id || '0'));
@@ -47,8 +48,6 @@ const Booking = () => {
       </div>
     );
   }
-  
-  const totalPrice = activity.price * participants;
   
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -82,51 +81,11 @@ const Booking = () => {
         </div>
         
         {/* Booking Form */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold mb-6">Book Your Adventure</h2>
-          
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Select Date</label>
-            <input
-              type="date"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Number of Children</label>
-            <select
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-              value={participants}
-              onChange={(e) => setParticipants(parseInt(e.target.value))}
-            >
-              {[1, 2, 3, 4, 5, 6].map(num => (
-                <option key={num} value={num}>{num}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="bg-gray-50 p-4 rounded-lg mb-6">
-            <div className="flex justify-between mb-2">
-              <span>Price per child</span>
-              <span>${activity.price}</span>
-            </div>
-            <div className="flex justify-between mb-2">
-              <span>Number of children</span>
-              <span>{participants}</span>
-            </div>
-            <div className="flex justify-between font-bold text-lg pt-2 border-t">
-              <span>Total</span>
-              <span>${totalPrice}</span>
-            </div>
-          </div>
-          
-          <button 
-            className="w-full bg-pink-500 text-white py-3 rounded-lg font-bold hover:bg-pink-600"
-          >
-            Continue to Checkout
-          </button>
-        </div>
+        <BookingForm 
+          activityId={activity.id} 
+          activityName={activity.title} 
+          price={activity.price} 
+        />
       </div>
     </div>
   );

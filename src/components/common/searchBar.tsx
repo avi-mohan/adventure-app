@@ -1,3 +1,4 @@
+// src/components/common/searchBar.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,8 +9,9 @@ const SearchBar = () => {
     location: '',
     dateFrom: '',
     dateTo: '',
-    children: 1,
-    age: ''
+    adults: 0,
+    children: 0,
+    infants: 0
   });
   
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -20,6 +22,21 @@ const SearchBar = () => {
       ...prev,
       [name]: value
     }));
+  };
+  
+  const handleGuestCountChange = (type: 'adults' | 'children' | 'infants', operation: 'add' | 'subtract') => {
+    setSearchParams(prev => {
+      const currentValue = prev[type];
+      let newValue = operation === 'add' ? currentValue + 1 : currentValue - 1;
+      
+      // Ensure counts don't go below 0
+      if (newValue < 0) newValue = 0;
+      
+      return {
+        ...prev,
+        [type]: newValue
+      };
+    });
   };
   
   const handleFilterClick = (filter: string) => {
@@ -36,8 +53,9 @@ const SearchBar = () => {
     if (searchParams.location) queryParams.append('location', searchParams.location);
     if (searchParams.dateFrom) queryParams.append('from', searchParams.dateFrom);
     if (searchParams.dateTo) queryParams.append('to', searchParams.dateTo);
-    if (searchParams.children) queryParams.append('children', searchParams.children.toString());
-    if (searchParams.age) queryParams.append('age', searchParams.age);
+    if (searchParams.adults > 0) queryParams.append('adults', searchParams.adults.toString());
+    if (searchParams.children > 0) queryParams.append('children', searchParams.children.toString());
+    if (searchParams.infants > 0) queryParams.append('infants', searchParams.infants.toString());
     
     // Navigate to activities page with search params
     navigate(`/activities?${queryParams.toString()}`);
@@ -51,6 +69,9 @@ const SearchBar = () => {
     setActiveFilter(null);
     setIsExpanded(false);
   };
+  
+  // Calculate total guests for display
+  const totalGuests = searchParams.adults + searchParams.children + searchParams.infants;
   
   return (
     <div className="relative z-20 w-full max-w-5xl mx-auto">
@@ -121,19 +142,12 @@ const SearchBar = () => {
             >
               <div className="px-4 py-2">
                 <div className="text-sm font-medium">Who</div>
-                <div className="flex items-center">
-                  <span className="text-gray-700">Children: </span>
-                  <select
-                    name="children"
-                    className="ml-2 bg-transparent border-none focus:outline-none text-gray-700"
-                    value={searchParams.children}
-                    onChange={handleInputChange}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {[1, 2, 3, 4, 5, 6].map(num => (
-                      <option key={num} value={num}>{num}</option>
-                    ))}
-                  </select>
+                <div className="text-gray-700">
+                  {totalGuests > 0 ? (
+                    <span>{totalGuests} guest{totalGuests !== 1 ? 's' : ''}</span>
+                  ) : (
+                    <span>Add guests</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -143,6 +157,7 @@ const SearchBar = () => {
               <button 
                 type="submit"
                 className="bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-full flex items-center justify-center transition-colors"
+                aria-label="Search"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
@@ -202,35 +217,111 @@ const SearchBar = () => {
           
           {activeFilter === 'who' && (
             <div className="p-6 border-t">
-              <h3 className="font-medium mb-4">Children details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Adults */}
+              <div className="flex items-center justify-between py-4 border-b">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Number of children</label>
-                  <select
-                    name="children"
-                    className="w-full p-2 border rounded"
-                    value={searchParams.children}
-                    onChange={handleInputChange}
-                  >
-                    {[1, 2, 3, 4, 5, 6].map(num => (
-                      <option key={num} value={num}>{num}</option>
-                    ))}
-                  </select>
+                  <h3 className="font-medium">Adults</h3>
+                  <p className="text-sm text-gray-500">Ages 13 or above</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Age range</label>
-                  <select
-                    name="age"
-                    className="w-full p-2 border rounded"
-                    value={searchParams.age}
-                    onChange={handleInputChange}
+                <div className="flex items-center">
+                  <button 
+                    type="button"
+                    className={`w-8 h-8 rounded-full border flex items-center justify-center ${searchParams.adults > 0 ? 'border-gray-400 text-gray-500' : 'border-gray-200 text-gray-300'}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleGuestCountChange('adults', 'subtract');
+                    }}
+                    disabled={searchParams.adults === 0}
                   >
-                    <option value="">All ages</option>
-                    <option value="3-5">3-5 years</option>
-                    <option value="6-8">6-8 years</option>
-                    <option value="9-12">9-12 years</option>
-                    <option value="13-17">13-17 years</option>
-                  </select>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                    </svg>
+                  </button>
+                  <span className="mx-4 w-5 text-center">{searchParams.adults}</span>
+                  <button 
+                    type="button"
+                    className="w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center text-gray-500"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleGuestCountChange('adults', 'add');
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              {/* Children */}
+              <div className="flex items-center justify-between py-4 border-b">
+                <div>
+                  <h3 className="font-medium">Children</h3>
+                  <p className="text-sm text-gray-500">Ages 2-12</p>
+                </div>
+                <div className="flex items-center">
+                  <button 
+                    type="button"
+                    className={`w-8 h-8 rounded-full border flex items-center justify-center ${searchParams.children > 0 ? 'border-gray-400 text-gray-500' : 'border-gray-200 text-gray-300'}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleGuestCountChange('children', 'subtract');
+                    }}
+                    disabled={searchParams.children === 0}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                    </svg>
+                  </button>
+                  <span className="mx-4 w-5 text-center">{searchParams.children}</span>
+                  <button 
+                    type="button"
+                    className="w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center text-gray-500"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleGuestCountChange('children', 'add');
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              {/* Infants */}
+              <div className="flex items-center justify-between py-4">
+                <div>
+                  <h3 className="font-medium">Infants</h3>
+                  <p className="text-sm text-gray-500">Under 2</p>
+                </div>
+                <div className="flex items-center">
+                  <button 
+                    type="button"
+                    className={`w-8 h-8 rounded-full border flex items-center justify-center ${searchParams.infants > 0 ? 'border-gray-400 text-gray-500' : 'border-gray-200 text-gray-300'}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleGuestCountChange('infants', 'subtract');
+                    }}
+                    disabled={searchParams.infants === 0}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                    </svg>
+                  </button>
+                  <span className="mx-4 w-5 text-center">{searchParams.infants}</span>
+                  <button 
+                    type="button"
+                    className="w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center text-gray-500"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleGuestCountChange('infants', 'add');
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>

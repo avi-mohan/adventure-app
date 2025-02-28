@@ -17,9 +17,12 @@ export const initGA = () => {
 
       // Initialize GA
       window.dataLayer = window.dataLayer || [];
-      function gtag(...args: any) {
+      // Using arrow function instead of function declaration
+      const gtag = (...args: any) => {
         window.dataLayer.push(args);
-      }
+      };
+      window.gtag = gtag;
+      
       gtag('js', new Date());
       gtag('config', GA_TRACKING_ID);
 

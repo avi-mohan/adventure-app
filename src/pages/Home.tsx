@@ -2,7 +2,7 @@ import React from 'react';
 import Hero from '../components/home/hero';
 import FeaturedActivities from '../components/home/featured_activities';
 import Newsletter from '../components/common/newsletter';
-import SearchBar from '../components/common/SearchBar';
+import SearchBar from '../components/common/searchBar';
 
 const Home = () => {
   return (
