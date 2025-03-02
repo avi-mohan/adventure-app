@@ -32,6 +32,13 @@ const Hero = () => {
             </Link>
             
             <Link 
+              to="/resources"
+              className="bg-teal-500 text-white px-6 py-3 rounded-lg font-bold text-center hover:bg-teal-600 transition-colors"
+            >
+              Resources
+            </Link>
+            
+            <Link 
               to="/contact" 
               className="border-2 border-white text-white px-6 py-3 rounded-lg font-bold text-center hover:bg-white hover:text-gray-900 transition-colors"
             >

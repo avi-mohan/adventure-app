@@ -1,22 +1,35 @@
 // src/components/common/searchBar.tsx
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const SearchBar = () => {
   const navigate = useNavigate();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const ageDropdownRef = useRef<HTMLDivElement>(null);
+  
   const [searchParams, setSearchParams] = useState({
     location: '',
     dateFrom: '',
     dateTo: '',
-    adults: 0,
-    children: 0,
-    infants: 0
+    ageGroups: [] as string[]
   });
   
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [isAgeDropdownOpen, setIsAgeDropdownOpen] = useState(false);
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ageDropdownRef.current && !ageDropdownRef.current.contains(event.target as Node)) {
+        setIsAgeDropdownOpen(false);
+      }
+    }
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [ageDropdownRef]);
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSearchParams(prev => ({
       ...prev,
@@ -24,24 +37,24 @@ const SearchBar = () => {
     }));
   };
   
-  const handleGuestCountChange = (type: 'adults' | 'children' | 'infants', operation: 'add' | 'subtract') => {
+  const handleAgeGroupToggle = (ageGroup: string) => {
     setSearchParams(prev => {
-      const currentValue = prev[type];
-      let newValue = operation === 'add' ? currentValue + 1 : currentValue - 1;
+      const currentAgeGroups = [...prev.ageGroups];
       
-      // Ensure counts don't go below 0
-      if (newValue < 0) newValue = 0;
-      
-      return {
-        ...prev,
-        [type]: newValue
-      };
+      if (currentAgeGroups.includes(ageGroup)) {
+        // Remove age group if already selected
+        return {
+          ...prev,
+          ageGroups: currentAgeGroups.filter(group => group !== ageGroup)
+        };
+      } else {
+        // Add age group if not selected
+        return {
+          ...prev,
+          ageGroups: [...currentAgeGroups, ageGroup]
+        };
+      }
     });
-  };
-  
-  const handleFilterClick = (filter: string) => {
-    setActiveFilter(activeFilter === filter ? null : filter);
-    setIsExpanded(true);
   };
   
   const handleSearch = (e: React.FormEvent) => {
@@ -53,37 +66,38 @@ const SearchBar = () => {
     if (searchParams.location) queryParams.append('location', searchParams.location);
     if (searchParams.dateFrom) queryParams.append('from', searchParams.dateFrom);
     if (searchParams.dateTo) queryParams.append('to', searchParams.dateTo);
-    if (searchParams.adults > 0) queryParams.append('adults', searchParams.adults.toString());
-    if (searchParams.children > 0) queryParams.append('children', searchParams.children.toString());
-    if (searchParams.infants > 0) queryParams.append('infants', searchParams.infants.toString());
+    searchParams.ageGroups.forEach(age => queryParams.append('age', age));
     
     // Navigate to activities page with search params
     navigate(`/activities?${queryParams.toString()}`);
+  };
+  
+  // Age group options
+  const ageGroups = [
+    { value: '0-3', label: 'Toddlers (0-3 years)' },
+    { value: '3-12', label: 'Children (3-12 years)' },
+    { value: '12+', label: 'Teens (12+ years)' }
+  ];
+  
+  // Format selected age groups for display
+  const getSelectedAgeGroupsText = () => {
+    if (searchParams.ageGroups.length === 0) return 'Select age group';
     
-    // Reset active filter
-    setActiveFilter(null);
-    setIsExpanded(false);
+    if (searchParams.ageGroups.length === ageGroups.length) return 'All age groups';
+    
+    return searchParams.ageGroups
+      .map(value => ageGroups.find(group => group.value === value)?.label.split(' ')[0])
+      .join(', ');
   };
-  
-  const closeFilters = () => {
-    setActiveFilter(null);
-    setIsExpanded(false);
-  };
-  
-  // Calculate total guests for display
-  const totalGuests = searchParams.adults + searchParams.children + searchParams.infants;
   
   return (
     <div className="relative z-20 w-full max-w-5xl mx-auto">
-      <div className={`bg-white rounded-full shadow-lg transition-all duration-300 ${isExpanded ? 'rounded-2xl' : ''}`}>
+      <div className="bg-white rounded-full shadow-lg">
         <form onSubmit={handleSearch}>
           {/* Main search bar */}
           <div className="flex flex-col md:flex-row md:items-center">
             {/* Where filter */}
-            <div 
-              className={`relative flex-1 p-2 cursor-pointer ${activeFilter === 'where' ? 'bg-gray-100 rounded-t-2xl md:rounded-l-full md:rounded-tr-none' : ''}`}
-              onClick={() => handleFilterClick('where')}
-            >
+            <div className="relative flex-1 p-2">
               <div className="px-4 py-2">
                 <div className="text-sm font-medium">Where</div>
                 <input
@@ -93,7 +107,6 @@ const SearchBar = () => {
                   className="w-full bg-transparent border-none focus:outline-none text-gray-700"
                   value={searchParams.location}
                   onChange={handleInputChange}
-                  onClick={(e) => e.stopPropagation()}
                 />
               </div>
             </div>
@@ -102,10 +115,7 @@ const SearchBar = () => {
             <div className="hidden md:block w-px h-10 bg-gray-300 mx-1"></div>
             
             {/* When filter */}
-            <div 
-              className={`relative flex-1 p-2 cursor-pointer ${activeFilter === 'when' ? 'bg-gray-100' : ''}`}
-              onClick={() => handleFilterClick('when')}
-            >
+            <div className="relative flex-1 p-2">
               <div className="px-4 py-2">
                 <div className="text-sm font-medium">When</div>
                 <div className="flex space-x-2">
@@ -116,7 +126,6 @@ const SearchBar = () => {
                     className="w-full bg-transparent border-none focus:outline-none text-gray-700"
                     value={searchParams.dateFrom}
                     onChange={handleInputChange}
-                    onClick={(e) => e.stopPropagation()}
                   />
                   <span className="text-gray-400">-</span>
                   <input
@@ -126,7 +135,6 @@ const SearchBar = () => {
                     className="w-full bg-transparent border-none focus:outline-none text-gray-700"
                     value={searchParams.dateTo}
                     onChange={handleInputChange}
-                    onClick={(e) => e.stopPropagation()}
                   />
                 </div>
               </div>
@@ -135,21 +143,71 @@ const SearchBar = () => {
             {/* Divider */}
             <div className="hidden md:block w-px h-10 bg-gray-300 mx-1"></div>
             
-            {/* Who filter */}
-            <div 
-              className={`relative flex-1 p-2 cursor-pointer ${activeFilter === 'who' ? 'bg-gray-100 rounded-b-2xl md:rounded-b-none md:rounded-r-full' : ''}`}
-              onClick={() => handleFilterClick('who')}
-            >
-              <div className="px-4 py-2">
-                <div className="text-sm font-medium">Who</div>
-                <div className="text-gray-700">
-                  {totalGuests > 0 ? (
-                    <span>{totalGuests} guest{totalGuests !== 1 ? 's' : ''}</span>
-                  ) : (
-                    <span>Add guests</span>
-                  )}
+            {/* Age Group filter */}
+            <div ref={ageDropdownRef} className="relative flex-1 p-2">
+              <div 
+                className="px-4 py-2 cursor-pointer"
+                onClick={() => setIsAgeDropdownOpen(!isAgeDropdownOpen)}
+              >
+                <div className="text-sm font-medium">Age Group</div>
+                <div className="text-gray-700 flex items-center justify-between">
+                  <span>{getSelectedAgeGroupsText()}</span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className={`h-4 w-4 text-gray-500 transition-transform ${isAgeDropdownOpen ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
               </div>
+              
+              {/* Age dropdown */}
+              {isAgeDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg p-3 z-30 transition-all">
+                  <div className="space-y-2">
+                    {ageGroups.map((ageGroup) => (
+                      <label 
+                        key={ageGroup.value} 
+                        className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={searchParams.ageGroups.includes(ageGroup.value)}
+                          onChange={() => handleAgeGroupToggle(ageGroup.value)}
+                          className="mr-3 h-4 w-4 text-pink-500 focus:ring-pink-400 rounded"
+                        />
+                        <span>{ageGroup.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  
+                  {searchParams.ageGroups.length > 0 && (
+                    <div className="mt-3 pt-2 border-t border-gray-100 flex justify-between">
+                      <button 
+                        type="button"
+                        className="text-sm text-gray-500 hover:text-gray-700"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSearchParams(prev => ({ ...prev, ageGroups: [] }));
+                        }}
+                      >
+                        Clear selection
+                      </button>
+                      
+                      <button
+                        type="button" 
+                        className="text-sm text-pink-500 font-medium hover:text-pink-600"
+                        onClick={() => setIsAgeDropdownOpen(false)}
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             
             {/* Search button */}
@@ -165,177 +223,8 @@ const SearchBar = () => {
               </button>
             </div>
           </div>
-          
-          {/* Expanded filter panels */}
-          {activeFilter === 'where' && (
-            <div className="p-6 border-t">
-              <h3 className="font-medium mb-4">Popular activities</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {['Nature Explorer', 'Cooking Class', 'Science Lab', 'Art Workshop'].map((activity) => (
-                  <div 
-                    key={activity} 
-                    className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                    onClick={() => {
-                      setSearchParams(prev => ({ ...prev, location: activity }));
-                      setActiveFilter(null);
-                    }}
-                  >
-                    {activity}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {activeFilter === 'when' && (
-            <div className="p-6 border-t">
-              <h3 className="font-medium mb-4">Select dates</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">From</label>
-                  <input
-                    type="date"
-                    name="dateFrom"
-                    className="w-full p-2 border rounded"
-                    value={searchParams.dateFrom}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">To</label>
-                  <input
-                    type="date"
-                    name="dateTo"
-                    className="w-full p-2 border rounded"
-                    value={searchParams.dateTo}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {activeFilter === 'who' && (
-            <div className="p-6 border-t">
-              {/* Adults */}
-              <div className="flex items-center justify-between py-4 border-b">
-                <div>
-                  <h3 className="font-medium">Adults</h3>
-                  <p className="text-sm text-gray-500">Ages 13 or above</p>
-                </div>
-                <div className="flex items-center">
-                  <button 
-                    type="button"
-                    className={`w-8 h-8 rounded-full border flex items-center justify-center ${searchParams.adults > 0 ? 'border-gray-400 text-gray-500' : 'border-gray-200 text-gray-300'}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGuestCountChange('adults', 'subtract');
-                    }}
-                    disabled={searchParams.adults === 0}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                    </svg>
-                  </button>
-                  <span className="mx-4 w-5 text-center">{searchParams.adults}</span>
-                  <button 
-                    type="button"
-                    className="w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center text-gray-500"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGuestCountChange('adults', 'add');
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              
-              {/* Children */}
-              <div className="flex items-center justify-between py-4 border-b">
-                <div>
-                  <h3 className="font-medium">Children</h3>
-                  <p className="text-sm text-gray-500">Ages 2-12</p>
-                </div>
-                <div className="flex items-center">
-                  <button 
-                    type="button"
-                    className={`w-8 h-8 rounded-full border flex items-center justify-center ${searchParams.children > 0 ? 'border-gray-400 text-gray-500' : 'border-gray-200 text-gray-300'}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGuestCountChange('children', 'subtract');
-                    }}
-                    disabled={searchParams.children === 0}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                    </svg>
-                  </button>
-                  <span className="mx-4 w-5 text-center">{searchParams.children}</span>
-                  <button 
-                    type="button"
-                    className="w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center text-gray-500"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGuestCountChange('children', 'add');
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              
-              {/* Infants */}
-              <div className="flex items-center justify-between py-4">
-                <div>
-                  <h3 className="font-medium">Infants</h3>
-                  <p className="text-sm text-gray-500">Under 2</p>
-                </div>
-                <div className="flex items-center">
-                  <button 
-                    type="button"
-                    className={`w-8 h-8 rounded-full border flex items-center justify-center ${searchParams.infants > 0 ? 'border-gray-400 text-gray-500' : 'border-gray-200 text-gray-300'}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGuestCountChange('infants', 'subtract');
-                    }}
-                    disabled={searchParams.infants === 0}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                    </svg>
-                  </button>
-                  <span className="mx-4 w-5 text-center">{searchParams.infants}</span>
-                  <button 
-                    type="button"
-                    className="w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center text-gray-500"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGuestCountChange('infants', 'add');
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </form>
       </div>
-      
-      {/* Backdrop when filters are expanded */}
-      {isExpanded && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-30 z-10"
-          onClick={closeFilters}
-        ></div>
-      )}
     </div>
   );
 };

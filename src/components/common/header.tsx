@@ -36,6 +36,27 @@ const Header = () => {
             >
               Activities
             </NavLink>
+            <NavLink 
+              to="/activities?sort=popular" 
+              className={({ isActive }) => 
+                isActive ? "font-medium text-pink-500" : "font-medium text-gray-700 hover:text-pink-500 transition-colors"
+              }
+            >
+              <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full font-bold flex items-center">
+                Hot!
+                <span className="ml-1 animate-pulse">
+                  🔥
+                </span>
+              </span>
+            </NavLink>
+            <NavLink 
+              to="/resources" 
+              className={({ isActive }) => 
+                isActive ? "font-medium text-pink-500" : "font-medium text-gray-700 hover:text-pink-500 transition-colors"
+              }
+            >
+              Resources
+            </NavLink>
             <Link 
               to="/contact" 
               className="font-medium text-gray-700 hover:text-pink-500 transition-colors"
@@ -94,6 +115,29 @@ const Header = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               Activities
+            </NavLink>
+            <NavLink 
+              to="/activities?sort=popular" 
+              className={({ isActive }) => 
+                isActive ? "font-medium text-pink-500" : "font-medium text-gray-700 hover:text-pink-500 transition-colors"
+              }
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full font-bold flex items-center">
+                Hot!
+                <span className="ml-1 animate-pulse">
+                  🔥
+                </span>
+              </span>
+            </NavLink>
+            <NavLink 
+              to="/resources" 
+              className={({ isActive }) => 
+                isActive ? "font-medium text-pink-500" : "font-medium text-gray-700 hover:text-pink-500 transition-colors"
+              }
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Resources
             </NavLink>
             <Link 
               to="/contact" 
