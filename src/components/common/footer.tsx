@@ -9,8 +9,8 @@ const Footer = () => {
           {/* Company Info */}
           <div>
             <h3 className="text-xl font-bold mb-4">
-              <span className="text-pink-400">Adventure</span>
-              <span>Kids</span>
+              <span className="text-pink-400">Kido</span>
+              <span>bee</span>
             </h3>
             <p className="text-gray-400 mb-4">
               Creating unforgettable experiences for children through fun and educational activities.
@@ -74,7 +74,7 @@ const Footer = () => {
           {/* Contact Info */}
           <div>
             <h4 className="text-lg font-bold mb-4">Contact Us</h4>
-            <p className="text-gray-400 mb-2">hello@adventurekids.com</p>
+            <p className="text-gray-400 mb-2">hello@kidobee.com</p>
             <p className="text-gray-400 mb-4">(555) 123-4567</p>
             <div className="flex space-x-4">
               <a 
@@ -116,7 +116,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
-          <p>© {new Date().getFullYear()} AdventureKids. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Kidobee. All rights reserved.</p>
         </div>
       </div>
     </footer>

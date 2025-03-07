@@ -14,8 +14,8 @@ const Header = () => {
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <Link to="/" className="text-2xl font-bold">
-            <span className="text-pink-500">Adventure</span>
-            <span>Kids</span>
+            <span className="text-pink-500">Kido</span>
+            <span>bee</span>
           </Link>
 
           {/* Desktop Navigation */}

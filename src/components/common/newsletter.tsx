@@ -17,7 +17,7 @@ const Newsletter = () => {
   return (
     <div className="bg-teal-500 py-16 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-3xl font-bold mb-6">Join Our Adventure Club</h2>
+        <h2 className="text-3xl font-bold mb-6">Join Kidobee Club</h2>
         <p className="max-w-xl mx-auto mb-8">
           Subscribe to our newsletter for exclusive offers and upcoming adventures for your kids.
         </p>
