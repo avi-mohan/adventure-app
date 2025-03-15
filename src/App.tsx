@@ -7,7 +7,6 @@ import ActivityListing from './pages/ActivityListing';
 import Booking from './pages/Booking';
 import ThankYou from './pages/ThankYou';
 import Resources from './pages/Resources';
-import AdminSeed from './pages/adminSeed';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -58,12 +57,7 @@ function App() {
                 <AdminDashboard />
               </ProtectedRoute>
             } />
-            <Route path="/admin/seed" element={
-              <ProtectedRoute>
-                <AdminSeed />
-              </ProtectedRoute>
-            } />
-            
+          
             {/* 404 Route */}
             <Route path="*" element={<div className="text-center py-20">
               <h1 className="text-4xl font-bold mb-4">Page Not Found</h1>
