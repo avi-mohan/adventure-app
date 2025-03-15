@@ -118,38 +118,41 @@ const ActivityListing = () => {
       <h1 className="text-3xl font-bold mb-8">Explore Adventures</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {activities.map((activity) => (
-          <div key={activity.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div 
-              className="h-48 bg-gray-200"
-              style={{ 
-                backgroundImage: `url(${(activity as any).images && (activity as any).images.length > 0 
-                  ? (activity as any).images[0] 
-                  : (activity.imageUrl || 'https://source.unsplash.com/random/600x400/?kids,activity')})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center' 
-              }}
-            />
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="text-xl font-bold">{activity.title}</h3>
-                <span className="bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full font-medium">
-                  Ages {activity.ageRange}
-                </span>
-              </div>
-              <p className="text-gray-600 mb-4">{activity.description}</p>
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-bold">${activity.price}/child</span>
-                <Link 
-                  to={`/booking/${activity.id}`}
-                  className="bg-pink-500 text-white px-4 py-2 rounded font-medium hover:bg-pink-600 transition-colors"
-                >
-                  Book Now
-                </Link>
+        {activities.map((activity) => {
+          // Get first image from images array, or use imageUrl, or use placeholder
+          const imageToDisplay = (activity as any).images && (activity as any).images.length > 0 
+            ? (activity as any).images[0] 
+            : (activity.imageUrl || 'https://source.unsplash.com/random/600x400/?kids,activity');
+            
+          return (
+            <div key={activity.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div 
+                className="h-48 bg-gray-200 bg-cover bg-center"
+                style={{ 
+                  backgroundImage: `url(${imageToDisplay})`,
+                }}
+              />
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="text-xl font-bold">{activity.title}</h3>
+                  <span className="bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full font-medium">
+                    Ages {activity.ageRange}
+                  </span>
+                </div>
+                <p className="text-gray-600 mb-4">{activity.description}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-bold">${activity.price}/child</span>
+                  <Link 
+                    to={`/booking/${activity.id}`}
+                    className="bg-pink-500 text-white px-4 py-2 rounded font-medium hover:bg-pink-600 transition-colors"
+                  >
+                    Book Now
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

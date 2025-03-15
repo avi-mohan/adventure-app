@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import BookingForm from '../booking/bookingForm';
 import { Activity } from '../../models/Activity';
+import ImageCarousel from './ImageCarousel';
 
 interface ActivityDetailProps {
   activity: Activity;
@@ -11,10 +12,8 @@ interface ActivityDetailProps {
 const ActivityDetail = ({ activity }: ActivityDetailProps) => {
   const [expanded, setExpanded] = useState(true);
   
-  // Get first image from images array, or fall back to imageUrl, or use a placeholder
-  const displayImage = (activity as any).images && (activity as any).images.length > 0 
-    ? (activity as any).images[0] 
-    : (activity.imageUrl || 'https://source.unsplash.com/random/600x400/?kids,activity');
+  // Get images array, or create array with single imageUrl, or use empty array (carousel will use fallback)
+  const displayImages = (activity as any).images || (activity.imageUrl ? [activity.imageUrl] : []);
   
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -35,12 +34,10 @@ const ActivityDetail = ({ activity }: ActivityDetailProps) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         {/* Activity Details - Left column */}
         <div>
-          <div 
-            className="w-full h-64 rounded-lg mb-6 bg-cover bg-center"
-            style={{ 
-              backgroundImage: `url(${displayImage})`,
-            }}
-          />
+          {/* Image Carousel */}
+          <div className="mb-6">
+            <ImageCarousel images={displayImages} />
+          </div>
           
           {/* Overview Section */}
           <div className="border border-gray-200 rounded-lg overflow-hidden">
