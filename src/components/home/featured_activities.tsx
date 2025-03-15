@@ -91,7 +91,11 @@ const FeaturedActivities = () => {
             <div key={activity.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div 
                 className="h-48 bg-gray-200 bg-cover bg-center"
-                style={{ backgroundImage: `url(${activity.imageUrl})` }}
+                style={{ 
+                  backgroundImage: `url(${(activity as any).images && (activity as any).images.length > 0 
+                    ? (activity as any).images[0] 
+                    : (activity.imageUrl || 'https://source.unsplash.com/random/600x400/?kids,activity')})` 
+                }}
               />
               <div className="p-6">
                 <div className="flex justify-between items-start mb-2">

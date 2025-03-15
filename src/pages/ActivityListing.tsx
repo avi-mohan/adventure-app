@@ -123,7 +123,9 @@ const ActivityListing = () => {
             <div 
               className="h-48 bg-gray-200"
               style={{ 
-                backgroundImage: `url(${activity.imageUrl})`,
+                backgroundImage: `url(${(activity as any).images && (activity as any).images.length > 0 
+                  ? (activity as any).images[0] 
+                  : (activity.imageUrl || 'https://source.unsplash.com/random/600x400/?kids,activity')})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center' 
               }}

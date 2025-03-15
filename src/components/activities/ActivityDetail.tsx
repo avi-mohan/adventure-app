@@ -11,6 +11,11 @@ interface ActivityDetailProps {
 const ActivityDetail = ({ activity }: ActivityDetailProps) => {
   const [expanded, setExpanded] = useState(true);
   
+  // Get first image from images array, or fall back to imageUrl, or use a placeholder
+  const displayImage = (activity as any).images && (activity as any).images.length > 0 
+    ? (activity as any).images[0] 
+    : (activity.imageUrl || 'https://source.unsplash.com/random/600x400/?kids,activity');
+  
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Back Button */}
@@ -33,7 +38,7 @@ const ActivityDetail = ({ activity }: ActivityDetailProps) => {
           <div 
             className="w-full h-64 rounded-lg mb-6 bg-cover bg-center"
             style={{ 
-              backgroundImage: `url(${activity.imageUrl})`,
+              backgroundImage: `url(${displayImage})`,
             }}
           />
           
