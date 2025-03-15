@@ -7,7 +7,7 @@ import ActivityListing from './pages/ActivityListing';
 import Booking from './pages/Booking';
 import ThankYou from './pages/ThankYou';
 import Resources from './pages/Resources';
-import AdminSeed from './pages/AdminSeed';
+import AdminSeed from './pages/adminSeed';
 
 // Components
 import Header from './components/common/header';
