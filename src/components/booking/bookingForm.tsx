@@ -1,25 +1,35 @@
 // src/components/booking/bookingForm.tsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createLead } from '../../services/leadService';
+import { subscribeEmail } from '../../services/subscriptionService';
+import { LeadFormData } from '../../models/Lead';
+import { trackEvent } from '../../services/firebase';
 
 interface BookingFormProps {
-  activityId: number;
+  activityId: string | number;
   activityName: string;
   price: number;
   websiteUrl?: string;
 }
 
 const BookingForm = ({ activityId, activityName, price, websiteUrl = "https://example.com" }: BookingFormProps) => {
-  const [formData, setFormData] = useState({
+  const navigate = useNavigate();
+  
+  const [formData, setFormData] = useState<LeadFormData>({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
+    activityId: activityId.toString(),
+    activityName,
     agreeToTerms: false,
     newsletter: false
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -33,33 +43,26 @@ const BookingForm = ({ activityId, activityName, price, websiteUrl = "https://ex
     e.preventDefault();
     
     if (!formData.agreeToTerms) {
-      alert('Please agree to the terms and conditions.');
+      setError('Please agree to the terms and conditions.');
       return;
     }
     
     setIsSubmitting(true);
+    setError(null);
     
     try {
-      // In a real app, you would send this lead data to your backend
-      console.log('Lead captured:', {
-        activityId,
-        activityName,
-        ...formData
-      });
+      // Save lead data to Firebase
+      await createLead(formData);
       
-      // Store lead data in localStorage for demonstration
-      const leads = JSON.parse(localStorage.getItem('leads') || '[]');
-      leads.push({
-        id: Date.now(),
-        activityId,
-        activityName,
-        ...formData,
-        capturedAt: new Date().toISOString()
-      });
-      localStorage.setItem('leads', JSON.stringify(leads));
-      
-      // Simulate API call to save the lead
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // If user opted in for newsletter, save subscription
+      if (formData.newsletter) {
+        await subscribeEmail({
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          subscriptionSource: 'lead'
+        });
+      }
       
       // Show success state
       setLeadCaptured(true);
@@ -67,10 +70,12 @@ const BookingForm = ({ activityId, activityName, price, websiteUrl = "https://ex
       // Redirect to external site after a short delay
       setTimeout(() => {
         window.open(websiteUrl, '_blank', 'noopener,noreferrer');
+        // Navigate to thank you page
+        navigate('/thank-you');
       }, 1500);
     } catch (error) {
       console.error('Error capturing lead:', error);
-      alert('There was an error saving your information. Please try again.');
+      setError('There was an error saving your information. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -94,6 +99,12 @@ const BookingForm = ({ activityId, activityName, price, websiteUrl = "https://ex
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold mb-6">Sign Up for {activityName}</h2>
+      
+      {error && (
+        <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
       
       <form onSubmit={handleSubmit}>
         {/* Lead Capture Fields */}

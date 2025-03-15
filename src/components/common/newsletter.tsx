@@ -1,17 +1,41 @@
 import React, { useState } from 'react';
+import { subscribeEmail } from '../../services/subscriptionService';
 
 const Newsletter = () => {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you would send this to your backend or email service
-    console.log('Email submitted:', email);
     
-    // For now, just simulate a successful subscription
-    setSubmitted(true);
-    setEmail('');
+    if (!email) return;
+    
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      // Save subscription to Firebase
+      const result = await subscribeEmail({
+        email,
+        subscriptionSource: 'footer'
+      });
+      
+      if (result) {
+        // Successful subscription
+        setSubmitted(true);
+        setEmail('');
+      } else {
+        // Email already exists
+        setError('This email is already subscribed to our newsletter.');
+      }
+    } catch (error) {
+      console.error('Error subscribing to newsletter:', error);
+      setError('There was an error subscribing to the newsletter. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   return (
@@ -42,21 +66,31 @@ const Newsletter = () => {
             <p>You've been added to our newsletter. Get ready for amazing adventures!</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="max-w-md mx-auto flex">
-            <input
-              type="email"
-              placeholder="Your email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="flex-grow px-4 py-3 rounded-l-lg focus:outline-none text-gray-800"
-            />
-            <button
-              type="submit"
-              className="bg-yellow-400 text-gray-800 px-6 py-3 rounded-r-lg font-bold hover:bg-yellow-300 transition-colors"
-            >
-              Subscribe
-            </button>
+          <form onSubmit={handleSubmit} className="max-w-md mx-auto">
+            {error && (
+              <div className="bg-red-400/70 text-white p-3 rounded-lg mb-4 text-sm">
+                {error}
+              </div>
+            )}
+            
+            <div className="flex">
+              <input
+                type="email"
+                placeholder="Your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="flex-grow px-4 py-3 rounded-l-lg focus:outline-none text-gray-800"
+                disabled={isSubmitting}
+              />
+              <button
+                type="submit"
+                className="bg-yellow-400 text-gray-800 px-6 py-3 rounded-r-lg font-bold hover:bg-yellow-300 transition-colors disabled:bg-yellow-200 disabled:cursor-not-allowed"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+              </button>
+            </div>
           </form>
         )}
       </div>
