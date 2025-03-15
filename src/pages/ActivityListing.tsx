@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { Activity } from '../models/Activity';
 
-// Debuggable version with properly typed state
 const ActivityListing = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState('No info yet');
-
+  
+  const location = useLocation();
+  
   useEffect(() => {
     const fetchActivities = async () => {
       try {
@@ -29,7 +30,13 @@ const ActivityListing = () => {
         
         setDebugInfo(`Found ${snapshot.docs.length} activities`);
         
-        // Convert Firestore data to Activity objects with proper typing
+        // Inspect raw data
+        console.log('Raw Firestore data:');
+        snapshot.docs.forEach(doc => {
+          console.log(`Activity ${doc.id}:`, doc.data());
+        });
+        
+        // Convert Firestore data to Activity objects
         const activitiesData = snapshot.docs.map(doc => {
           const data = doc.data();
           return {
@@ -39,6 +46,7 @@ const ActivityListing = () => {
             price: data.price || 0,
             ageRange: data.ageRange || '',
             imageUrl: data.imageUrl || '',
+            images: Array.isArray(data.images) ? data.images : [],
             location: data.location || '',
             programDetails: data.programDetails || '',
             activities: data.activities || [],
@@ -48,6 +56,8 @@ const ActivityListing = () => {
             updatedAt: data.updatedAt?.toDate() || new Date(),
           } as Activity;
         });
+        
+        console.log('Processed activities:', activitiesData);
         
         setDebugInfo(`Processed ${activitiesData.length} activities`);
         setActivities(activitiesData);
@@ -61,7 +71,26 @@ const ActivityListing = () => {
     };
     
     fetchActivities();
-  }, []);
+  }, [location]);
+  
+  // Helper function for image URLs
+  const getImageUrl = (activity: Activity): string => {
+    // Try to get image from images array first
+    if (activity.images && activity.images.length > 0) {
+      console.log(`Using images[0] for ${activity.id}:`, activity.images[0]);
+      return activity.images[0];
+    }
+    
+    // Fall back to imageUrl if available
+    if (activity.imageUrl) {
+      console.log(`Using imageUrl for ${activity.id}:`, activity.imageUrl);
+      return activity.imageUrl;
+    }
+    
+    // Default fallback
+    console.log(`Using fallback image for ${activity.id}`);
+    return 'https://source.unsplash.com/random/600x400/?kids,activity';
+  };
   
   if (loading) {
     return (
@@ -124,23 +153,15 @@ const ActivityListing = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {activities.map((activity) => {
-          // Get first image from images array, or use imageUrl, or use placeholder
-          let imageToDisplay = 'https://source.unsplash.com/random/600x400/?kids,activity';
-          
-          // Only try to access images if the property exists
-          const hasImages = 'images' in activity && Array.isArray(activity.images) && activity.images.length > 0;
-          if (hasImages) {
-            imageToDisplay = activity.images![0];
-          } else if (activity.imageUrl) {
-            imageToDisplay = activity.imageUrl;
-          }
-          
+          // Get image URL for this activity
+          const imageUrl = getImageUrl(activity);
+            
           return (
             <div key={activity.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div 
                 className="h-48 bg-gray-200 bg-cover bg-center"
                 style={{ 
-                  backgroundImage: `url(${imageToDisplay})`,
+                  backgroundImage: `url(${imageUrl})`,
                 }}
               />
               <div className="p-6">

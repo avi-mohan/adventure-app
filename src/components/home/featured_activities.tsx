@@ -13,6 +13,7 @@ const FeaturedActivities = () => {
       try {
         setLoading(true);
         const featuredActivities = await getFeaturedActivities(8); // Get top 8 featured activities
+        console.log("Featured activities loaded:", featuredActivities);
         setActivities(featuredActivities);
       } catch (err) {
         console.error('Error fetching featured activities:', err);
@@ -89,9 +90,15 @@ const FeaturedActivities = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {activities.map((activity) => {
             // Get first image from images array, or use imageUrl, or use placeholder
-            const imageToDisplay = (activity as any).images && (activity as any).images.length > 0 
-              ? (activity as any).images[0] 
-              : (activity.imageUrl || 'https://source.unsplash.com/random/600x400/?kids,activity');
+            let imageToDisplay = 'https://source.unsplash.com/random/600x400/?kids,activity';
+            
+            if (activity.images && activity.images.length > 0) {
+              imageToDisplay = activity.images[0];
+              console.log(`Using images[0] for featured activity ${activity.id}:`, imageToDisplay);
+            } else if (activity.imageUrl) {
+              imageToDisplay = activity.imageUrl;
+              console.log(`Using imageUrl for featured activity ${activity.id}:`, imageToDisplay);
+            }
               
             return (
               <div key={activity.id} className="bg-white rounded-lg shadow-md overflow-hidden">

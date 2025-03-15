@@ -6,7 +6,7 @@ export interface Activity {
   price: number;
   ageRange: string;
   imageUrl?: string;
-  images?: string[];
+  images?: string[];  // Explicitly defined as optional string array
   websiteUrl?: string;
   location?: string;
   programDetails?: string;
