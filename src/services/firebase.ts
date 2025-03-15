@@ -7,13 +7,13 @@ import { getAnalytics, logEvent } from 'firebase/analytics';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID,
-  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyB8tN-V0oaqigiQJ-7oLrRiWxToP18fS_U",
+  authDomain: "kidobee-c1785.firebaseapp.com",
+  projectId: "kidobee-c1785",
+  storageBucket: "kidobee-c1785.firebasestorage.app",
+  messagingSenderId: "834570509224",
+  appId: "1:834570509224:web:c568ae44c0f455ae549b9d",
+  measurementId: "G-21EGK0LWDG"
 };
 
 // Initialize Firebase
