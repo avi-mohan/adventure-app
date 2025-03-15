@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { getAllActivities, searchActivities } from '../services/activityService';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../services/firebase';
 import { Activity } from '../models/Activity';
 
 const ActivityListing = () => {
@@ -9,41 +10,38 @@ const ActivityListing = () => {
   const [error, setError] = useState<string | null>(null);
   
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const locationParam = searchParams.get('location');
-  const fromDate = searchParams.get('from');
-  const toDate = searchParams.get('to');
-  const ageParams = searchParams.getAll('age');
   
   useEffect(() => {
     const fetchActivities = async () => {
       try {
         setLoading(true);
         
-        // If we have search parameters, use the search function
-        if (locationParam || fromDate || toDate || ageParams.length > 0) {
-          const searchTerm = locationParam || '';
-          const filters: Record<string, any> = {};
-          
-          if (ageParams.length > 0) {
-            filters.ageRange = ageParams;
-          }
-          
-          if (fromDate) {
-            filters.fromDate = fromDate;
-          }
-          
-          if (toDate) {
-            filters.toDate = toDate;
-          }
-          
-          const results = await searchActivities(searchTerm, filters);
-          setActivities(results);
-        } else {
-          // Otherwise, get all activities
-          const allActivities = await getAllActivities();
-          setActivities(allActivities);
-        }
+        // Direct Firestore query to get all activities
+        const activitiesCollection = collection(db, 'activities');
+        const snapshot = await getDocs(activitiesCollection);
+        
+        // Convert Firestore data to Activity objects
+        const activitiesData = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            title: data.title || '',
+            description: data.description || '',
+            price: data.price || 0,
+            ageRange: data.ageRange || '',
+            imageUrl: data.imageUrl || '',
+            images: data.images || [],
+            location: data.location || '',
+            programDetails: data.programDetails || '',
+            activities: data.activities || [],
+            featured: data.featured || false,
+            category: data.category || '',
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+          } as Activity;
+        });
+        
+        setActivities(activitiesData);
       } catch (err) {
         console.error('Error fetching activities:', err);
         setError('Failed to load activities. Please try again later.');
@@ -53,7 +51,7 @@ const ActivityListing = () => {
     };
     
     fetchActivities();
-  }, [locationParam, fromDate, toDate, ageParams]);
+  }, [location]);
   
   if (loading) {
     return (
@@ -120,9 +118,13 @@ const ActivityListing = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {activities.map((activity) => {
           // Get first image from images array, or use imageUrl, or use placeholder
-          const imageToDisplay = (activity as any).images && (activity as any).images.length > 0 
-            ? (activity as any).images[0] 
-            : (activity.imageUrl || 'https://source.unsplash.com/random/600x400/?kids,activity');
+          let imageToDisplay = 'https://source.unsplash.com/random/600x400/?kids,activity';
+          
+          if (activity.images && activity.images.length > 0) {
+            imageToDisplay = activity.images[0];
+          } else if (activity.imageUrl) {
+            imageToDisplay = activity.imageUrl;
+          }
             
           return (
             <div key={activity.id} className="bg-white rounded-lg shadow-md overflow-hidden">
