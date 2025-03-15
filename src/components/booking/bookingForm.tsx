@@ -1,20 +1,23 @@
 // src/components/booking/bookingForm.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createLead } from '../../services/leadService';
 import { subscribeEmail } from '../../services/subscriptionService';
 import { LeadFormData } from '../../models/Lead';
-import { trackEvent } from '../../services/firebase';
+import { Activity } from '../../models/Activity';
+import { getActivityById } from '../../services/activityService';
 
 interface BookingFormProps {
-  activityId: string | number;
+  activityId: string;
   activityName: string;
   price: number;
   websiteUrl?: string;
 }
 
-const BookingForm = ({ activityId, activityName, price, websiteUrl = "https://example.com" }: BookingFormProps) => {
+const BookingForm = ({ activityId, activityName, price, websiteUrl }: BookingFormProps) => {
   const navigate = useNavigate();
+  const [activity, setActivity] = useState<Activity | null>(null);
+  const [loadingActivity, setLoadingActivity] = useState(true);
   
   const [formData, setFormData] = useState<LeadFormData>({
     firstName: '',
@@ -30,6 +33,30 @@ const BookingForm = ({ activityId, activityName, price, websiteUrl = "https://ex
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Fetch activity details if websiteUrl is not provided in props
+  useEffect(() => {
+    const fetchActivityDetails = async () => {
+      if (websiteUrl) {
+        // No need to fetch if websiteUrl is already provided in props
+        setLoadingActivity(false);
+        return;
+      }
+      
+      try {
+        setLoadingActivity(true);
+        const fetchedActivity = await getActivityById(activityId);
+        setActivity(fetchedActivity);
+      } catch (err) {
+        console.error('Error fetching activity details:', err);
+        setError('Failed to load activity details. Please try again later.');
+      } finally {
+        setLoadingActivity(false);
+      }
+    };
+    
+    fetchActivityDetails();
+  }, [activityId, websiteUrl]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -52,7 +79,8 @@ const BookingForm = ({ activityId, activityName, price, websiteUrl = "https://ex
     
     try {
       // Save lead data to Firebase
-      await createLead(formData);
+      const savedLead = await createLead(formData);
+      console.log('Lead data saved successfully:', savedLead);
       
       // If user opted in for newsletter, save subscription
       if (formData.newsletter) {
@@ -62,24 +90,44 @@ const BookingForm = ({ activityId, activityName, price, websiteUrl = "https://ex
           lastName: formData.lastName,
           subscriptionSource: 'lead'
         });
+        console.log('Newsletter subscription saved');
       }
       
       // Show success state
       setLeadCaptured(true);
       
+      // Determine target website URL
+      const targetUrl = websiteUrl || activity?.websiteUrl || 'https://www.kidobee.com';
+      
       // Redirect to external site after a short delay
       setTimeout(() => {
-        window.open(websiteUrl, '_blank', 'noopener,noreferrer');
+        window.open(targetUrl, '_blank', 'noopener,noreferrer');
         // Navigate to thank you page
         navigate('/thank-you');
       }, 1500);
-    } catch (error) {
-      console.error('Error capturing lead:', error);
+    } catch (err) {
+      console.error('Error capturing lead:', err);
       setError('There was an error saving your information. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+  if (loadingActivity && !websiteUrl) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6 text-center">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto mb-6"></div>
+          <div className="h-4 bg-gray-200 rounded mb-6"></div>
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="h-10 bg-gray-200 rounded"></div>
+            <div className="h-10 bg-gray-200 rounded"></div>
+          </div>
+          <div className="h-12 bg-pink-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
   
   if (leadCaptured) {
     return (
@@ -91,7 +139,18 @@ const BookingForm = ({ activityId, activityName, price, websiteUrl = "https://ex
         </div>
         <h2 className="text-2xl font-bold mb-4">Thank You!</h2>
         <p className="mb-4">We've saved your information. Opening the registration page for {activityName} now...</p>
-        <p className="text-sm text-gray-600">If the page doesn't open automatically, <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="text-pink-500 hover:underline">click here</a>.</p>
+        
+        {/* Use either passed websiteUrl or the one from the activity object */}
+        <p className="text-sm text-gray-600">
+          If the page doesn't open automatically, <a 
+            href={websiteUrl || activity?.websiteUrl || '#'} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-pink-500 hover:underline"
+          >
+            click here
+          </a>
+        </p>
       </div>
     );
   }
