@@ -1,20 +1,17 @@
-// src/models/Lead.ts
-export interface Lead {
+// src/models/Resource.ts
+export interface Resource {
     id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    activityId: string;
-    activityName: string;
-    agreeToTerms: boolean;
-    newsletter: boolean;
-    notes?: string;
-    status: 'new' | 'contacted' | 'converted' | 'lost';
+    title: string;
+    description: string;
+    category: string;
+    readTime: string;
+    imageUrl: string;
+    externalLink?: string;
+    content?: string; // For resources with internal content
+    featured?: boolean;
+    tags?: string[];
     createdAt: Date;
     updatedAt: Date;
   }
   
-  export interface LeadFormData extends Omit<Lead, 'id' | 'status' | 'createdAt' | 'updatedAt'> {
-    status?: 'new' | 'contacted' | 'converted' | 'lost';
-  }
+  export interface ResourceFormData extends Omit<Resource, 'id' | 'createdAt' | 'updatedAt'> {}

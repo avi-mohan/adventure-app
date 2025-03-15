@@ -121,7 +121,8 @@ import {
       updateData.imageUrl = await getDownloadURL(snapshot.ref);
     }
     
-    updateData.updatedAt = serverTimestamp() as any;
+    // Fix for TypeScript error
+    (updateData as any).updatedAt = serverTimestamp();
     
     await updateDoc(docRef, updateData);
     
