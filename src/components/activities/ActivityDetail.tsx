@@ -2,22 +2,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import BookingForm from '../booking/bookingForm';
+import { Activity } from '../../models/Activity';
 
 interface ActivityDetailProps {
-  activity: {
-    id: number;
-    title: string;
-    description: string;
-    ageRange: string;
-    price: number;
-    imageUrl: string;
-    websiteUrl?: string;
-    
-    // Additional structured information
-    location?: string;
-    activities?: string[];
-    programDetails?: string;
-  };
+  activity: Activity;
 }
 
 const ActivityDetail = ({ activity }: ActivityDetailProps) => {

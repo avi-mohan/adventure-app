@@ -1,107 +1,86 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
-// Extended sample activity data with more options
-const activities = [
-  {
-    id: 1,
-    title: "Nature Explorer Camp",
-    description: "Discover wildlife, plants, and natural wonders in our guided outdoor adventure.",
-    price: 45,
-    ageRange: "6-12",
-    imageUrl: "https://source.unsplash.com/random/600x400/?kids,nature",
-  },
-  {
-    id: 2,
-    title: "Junior Chefs Cooking Class",
-    description: "Learn to prepare delicious and healthy meals in a fun, hands-on environment.",
-    price: 35,
-    ageRange: "8-14",
-    imageUrl: "https://source.unsplash.com/random/600x400/?kids,cooking",
-  },
-  {
-    id: 3,
-    title: "Science Discovery Lab",
-    description: "Explore fascinating experiments and learn about chemistry, physics, and biology.",
-    price: 40,
-    ageRange: "7-15",
-    imageUrl: "https://source.unsplash.com/random/600x400/?kids,science",
-  },
-  {
-    id: 4,
-    title: "Art & Painting Workshop",
-    description: "Express creativity through various art mediums with professional guidance.",
-    price: 38,
-    ageRange: "5-16",
-    imageUrl: "https://source.unsplash.com/random/600x400/?kids,art",
-  },
-  {
-    id: 5,
-    title: "Robotics for Kids",
-    description: "Build and program your own robots in this hands-on technology adventure.",
-    price: 55,
-    ageRange: "9-16",
-    imageUrl: "https://source.unsplash.com/random/600x400/?kids,robotics",
-  },
-  {
-    id: 6,
-    title: "Sports Camp Extravaganza",
-    description: "Try different sports activities in a fun, non-competitive environment.",
-    price: 42,
-    ageRange: "6-14",
-    imageUrl: "https://source.unsplash.com/random/600x400/?kids,sports",
-  },
-  {
-    id: 7,
-    title: "Music & Rhythm Workshop",
-    description: "Discover various instruments and create music in an encouraging setting.",
-    price: 40,
-    ageRange: "4-12",
-    imageUrl: "https://source.unsplash.com/random/600x400/?kids,music",
-  },
-  {
-    id: 8,
-    title: "Toddler Adventure Play",
-    description: "Supervised play activities designed specifically for our youngest adventurers.",
-    price: 30,
-    ageRange: "2-4",
-    imageUrl: "https://source.unsplash.com/random/600x400/?toddler,play",
-  },
-  {
-    id: 9,
-    title: "Teen Photography Expedition",
-    description: "Learn photography skills while exploring beautiful locations with professional equipment.",
-    price: 60,
-    ageRange: "12-17",
-    imageUrl: "https://source.unsplash.com/random/600x400/?teen,photography",
-  },
-  {
-    id: 10,
-    title: "Little Gardeners Club",
-    description: "Plant, grow, and learn about nature in our specially designed children's garden.",
-    price: 35,
-    ageRange: "4-10",
-    imageUrl: "https://source.unsplash.com/random/600x400/?kids,gardening",
-  },
-  {
-    id: 11,
-    title: "Adventure Obstacle Course",
-    description: "Challenge yourself on our exciting obstacle course designed for all skill levels.",
-    price: 38,
-    ageRange: "6-15",
-    imageUrl: "https://source.unsplash.com/random/600x400/?kids,obstacle",
-  },
-  {
-    id: 12,
-    title: "Story & Theater Camp",
-    description: "Create characters, write stories, and perform in our culminating theater showcase.",
-    price: 45,
-    ageRange: "7-14",
-    imageUrl: "https://source.unsplash.com/random/600x400/?kids,theater",
-  }
-];
+import { getFeaturedActivities } from '../../services/activityService';
+import { Activity } from '../../models/Activity';
 
 const FeaturedActivities = () => {
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        setLoading(true);
+        const featuredActivities = await getFeaturedActivities(8); // Get top 8 featured activities
+        setActivities(featuredActivities);
+      } catch (err) {
+        console.error('Error fetching featured activities:', err);
+        setError('Failed to load featured activities');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mx-auto mb-12"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((item) => (
+              <div key={item} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
+                <div className="h-48 bg-gray-200"></div>
+                <div className="p-6">
+                  <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                  <div className="flex justify-between items-center">
+                    <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+                    <div className="h-8 bg-teal-200 rounded w-1/4"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold mb-12">Popular Adventures</h2>
+          <p className="text-red-500 mb-4">{error}</p>
+          <p>We're working on fixing this issue. Please check back later.</p>
+        </div>
+      </section>
+    );
+  }
+
+  // If no featured activities, show a message
+  if (activities.length === 0) {
+    return (
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold mb-8">Popular Adventures</h2>
+          <p className="mb-8">No featured activities available at the moment.</p>
+          <Link 
+            to="/activities"
+            className="bg-pink-500 text-white px-8 py-3 rounded-lg font-bold inline-block hover:bg-pink-600 transition-colors"
+          >
+            View All Activities
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
