@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllResources, getResourcesByCategory } from '../services/resourceService';
 import { Resource } from '../models/Resource';
+import ResourceCard from '../components/resources/ResourceCard.tsx';
 
 const Resources = () => {
   const [resources, setResources] = useState<Resource[]>([]);
@@ -128,37 +129,10 @@ const Resources = () => {
         </div>
       )}
       
-      {/* Articles Grid */}
+      {/* Resources Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {resources.map((article) => (
-          <a 
-            key={article.id} 
-            href={article.externalLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-          >
-            <div 
-              className="h-48 bg-cover bg-center"
-              style={{ backgroundImage: `url(${article.imageUrl})` }}
-            />
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-2">
-                <span className="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full font-medium">
-                  {article.category}
-                </span>
-                <span className="text-gray-500 text-sm">{article.readTime}</span>
-              </div>
-              <h3 className="text-xl font-bold mb-2">{article.title}</h3>
-              <p className="text-gray-600 mb-4">{article.description}</p>
-              <div className="text-pink-500 font-medium flex items-center">
-                Read Article
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-          </a>
+        {resources.map((resource) => (
+          <ResourceCard key={resource.id} resource={resource} />
         ))}
       </div>
       

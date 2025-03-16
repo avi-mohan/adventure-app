@@ -75,25 +75,30 @@ const BookingForm = ({ activityId, activityName, price, websiteUrl }: BookingFor
     }
     
     setIsSubmitting(true);
-    setError(null);
+    setError(null); // Clear any previous errors
     
     try {
-      // Save lead data to Firebase
+      // Save lead data to Firebase - ignore any errors in the console if the operation succeeds
       const savedLead = await createLead(formData);
       console.log('Lead data saved successfully:', savedLead);
       
       // If user opted in for newsletter, save subscription
       if (formData.newsletter) {
-        await subscribeEmail({
-          email: formData.email,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          subscriptionSource: 'lead'
-        });
-        console.log('Newsletter subscription saved');
+        try {
+          await subscribeEmail({
+            email: formData.email,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            subscriptionSource: 'lead'
+          });
+          console.log('Newsletter subscription saved');
+        } catch (subscribeErr) {
+          console.error('Error with newsletter subscription, but lead was captured:', subscribeErr);
+          // Don't set the main error here since the lead was still captured
+        }
       }
       
-      // Show success state
+      // Show success state regardless of console errors
       setLeadCaptured(true);
       
       // Determine target website URL
@@ -105,9 +110,32 @@ const BookingForm = ({ activityId, activityName, price, websiteUrl }: BookingFor
         // Navigate to thank you page
         navigate('/thank-you');
       }, 1500);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error capturing lead:', err);
-      setError('There was an error saving your information. Please try again.');
+      // Check if the lead is already saved despite the error
+      
+      // Add an automatic retry once in case of transient error
+      try {
+        console.log('Retrying lead creation...');
+        const savedLead = await createLead(formData);
+        console.log('Lead data saved successfully on retry:', savedLead);
+        setLeadCaptured(true);
+        
+        // Determine target website URL
+        const targetUrl = websiteUrl || activity?.websiteUrl || 'https://www.kidobee.com';
+        
+        // Redirect to external site after a short delay
+        setTimeout(() => {
+          window.open(targetUrl, '_blank', 'noopener,noreferrer');
+          // Navigate to thank you page
+          navigate('/thank-you');
+        }, 1500);
+        
+        return; // Exit early since retry succeeded
+      } catch (retryErr) {
+        console.error('Retry also failed:', retryErr);
+        setError('There was an error saving your information. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
