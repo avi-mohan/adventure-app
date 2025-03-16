@@ -34,7 +34,7 @@ const ResourceCard = ({ resource }: ResourceCardProps) => {
           </svg>
         </div>
         
-        {/* Display tags if available - add safety check */}
+        {/* Display tags if available - with proper type checking */}
         {resource.tags && Array.isArray(resource.tags) && resource.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
             {resource.tags.map((tag, index) => (
