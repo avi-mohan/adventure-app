@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllResources, getResourcesByCategory } from '../services/resourceService';
 import { Resource } from '../models/Resource';
-import ResourceCard from '../components/resources/ResourceCard.tsx';
+import ResourceCard from '../components/resources/ResourceCard';
 
 const Resources = () => {
   const [resources, setResources] = useState<Resource[]>([]);
