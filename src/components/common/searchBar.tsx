@@ -5,21 +5,25 @@ import { useNavigate } from 'react-router-dom';
 const SearchBar = () => {
   const navigate = useNavigate();
   const ageDropdownRef = useRef<HTMLDivElement>(null);
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
   
   const [searchParams, setSearchParams] = useState({
     location: '',
-    dateFrom: '',
-    dateTo: '',
+    activityType: '',
     ageGroups: [] as string[]
   });
   
   const [isAgeDropdownOpen, setIsAgeDropdownOpen] = useState(false);
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (ageDropdownRef.current && !ageDropdownRef.current.contains(event.target as Node)) {
         setIsAgeDropdownOpen(false);
+      }
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target as Node)) {
+        setIsTypeDropdownOpen(false);
       }
     }
     
@@ -27,7 +31,7 @@ const SearchBar = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [ageDropdownRef]);
+  }, [ageDropdownRef, typeDropdownRef]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,6 +39,14 @@ const SearchBar = () => {
       ...prev,
       [name]: value
     }));
+  };
+  
+  const handleActivityTypeSelect = (type: string) => {
+    setSearchParams(prev => ({
+      ...prev,
+      activityType: type
+    }));
+    setIsTypeDropdownOpen(false);
   };
   
   const handleAgeGroupToggle = (ageGroup: string) => {
@@ -64,13 +76,25 @@ const SearchBar = () => {
     // Build query string
     const queryParams = new URLSearchParams();
     if (searchParams.location) queryParams.append('location', searchParams.location);
-    if (searchParams.dateFrom) queryParams.append('from', searchParams.dateFrom);
-    if (searchParams.dateTo) queryParams.append('to', searchParams.dateTo);
+    if (searchParams.activityType) queryParams.append('type', searchParams.activityType);
     searchParams.ageGroups.forEach(age => queryParams.append('age', age));
     
     // Navigate to activities page with search params
     navigate(`/activities?${queryParams.toString()}`);
   };
+  
+  // Activity type options
+  const activityTypes = [
+    'All Types',
+    'Camp',
+    'Class',
+    'Workshop',
+    'Adventure',
+    'Sport',
+    'Arts & Crafts',
+    'STEM',
+    'Special Event'
+  ];
   
   // Age group options
   const ageGroups = [
@@ -114,30 +138,43 @@ const SearchBar = () => {
             {/* Divider */}
             <div className="hidden md:block w-px h-10 bg-gray-300 mx-1"></div>
             
-            {/* When filter */}
-            <div className="relative flex-1 p-2">
-              <div className="px-4 py-2">
-                <div className="text-sm font-medium">When</div>
-                <div className="flex space-x-2">
-                  <input
-                    type="date"
-                    name="dateFrom"
-                    placeholder="From"
-                    className="w-full bg-transparent border-none focus:outline-none text-gray-700"
-                    value={searchParams.dateFrom}
-                    onChange={handleInputChange}
-                  />
-                  <span className="text-gray-400">-</span>
-                  <input
-                    type="date"
-                    name="dateTo"
-                    placeholder="To"
-                    className="w-full bg-transparent border-none focus:outline-none text-gray-700"
-                    value={searchParams.dateTo}
-                    onChange={handleInputChange}
-                  />
+            {/* Activity Type filter */}
+            <div ref={typeDropdownRef} className="relative flex-1 p-2">
+              <div 
+                className="px-4 py-2 cursor-pointer"
+                onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
+              >
+                <div className="text-sm font-medium">Activity Type</div>
+                <div className="text-gray-700 flex items-center justify-between">
+                  <span>{searchParams.activityType || 'All Types'}</span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className={`h-4 w-4 text-gray-500 transition-transform ${isTypeDropdownOpen ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
               </div>
+              
+              {/* Activity Type dropdown */}
+              {isTypeDropdownOpen && (
+                <div className="absolute left-0 right-0 mt-2 bg-white rounded-lg shadow-lg p-3 z-30 transition-all max-h-60 overflow-y-auto">
+                  <div className="space-y-2">
+                    {activityTypes.map((type) => (
+                      <div 
+                        key={type} 
+                        className="p-2 hover:bg-gray-50 rounded cursor-pointer"
+                        onClick={() => handleActivityTypeSelect(type === 'All Types' ? '' : type)}
+                      >
+                        {type}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Divider */}
