@@ -6,6 +6,7 @@ import { subscribeEmail } from '../../services/subscriptionService';
 import { LeadFormData } from '../../models/Lead';
 import { Activity } from '../../models/Activity';
 import { getActivityById } from '../../services/activityService';
+import { trackBookingConversion } from '../../services/analytics';
 
 interface BookingFormProps {
   activityId: string;
@@ -82,6 +83,14 @@ const BookingForm = ({ activityId, activityName, price, websiteUrl }: BookingFor
       const savedLead = await createLead(formData);
       console.log('Lead data saved successfully:', savedLead);
       
+      // Track the booking conversion in GA4
+      try {
+        trackBookingConversion(activityId, price);
+      } catch (analyticsError) {
+        // Don't let analytics errors affect the user experience
+        console.error('Error tracking conversion:', analyticsError);
+      }
+      
       // If user opted in for newsletter, save subscription
       if (formData.newsletter) {
         try {
@@ -120,6 +129,13 @@ const BookingForm = ({ activityId, activityName, price, websiteUrl }: BookingFor
         const savedLead = await createLead(formData);
         console.log('Lead data saved successfully on retry:', savedLead);
         setLeadCaptured(true);
+        
+        // Track conversion on retry as well
+        try {
+          trackBookingConversion(activityId, price);
+        } catch (analyticsError) {
+          console.error('Error tracking conversion after retry:', analyticsError);
+        }
         
         // Determine target website URL
         const targetUrl = websiteUrl || activity?.websiteUrl || 'https://www.kidobee.com';

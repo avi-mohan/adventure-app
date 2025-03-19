@@ -4,6 +4,7 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics, logEvent } from 'firebase/analytics';
+import { initGA, trackPageView } from './analytics';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -13,7 +14,7 @@ const firebaseConfig = {
   storageBucket: "kidobee-c1785.firebasestorage.app",
   messagingSenderId: "834570509224",
   appId: "1:834570509224:web:c568ae44c0f455ae549b9d",
-  measurementId: "G-21EGK0LWDG"
+  measurementId: "G-21EGK0LWDG" // Make sure this matches your GA tracking ID
 };
 
 // Initialize Firebase
@@ -23,11 +24,22 @@ const auth = getAuth(app);
 const storage = getStorage(app);
 const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
+// Initialize GA4
+if (typeof window !== 'undefined') {
+  initGA();
+}
+
 // Helper function for analytics events
 export const trackEvent = (eventName: string, eventParams?: Record<string, any>) => {
   if (analytics) {
+    // Track in Firebase Analytics
     logEvent(analytics, eventName, eventParams);
+    
+    // Also track in GA4 for better marketing analysis
+    if (window.gtag) {
+      window.gtag('event', eventName, eventParams);
+    }
   }
 };
 
-export { app, db, auth, storage, analytics };
+export { app, db, auth, storage, analytics }; 

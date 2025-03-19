@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 
 // Pages
 import Home from './pages/Home';
@@ -17,28 +17,30 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Initialize Firebase analytics tracking
 import { trackEvent } from './services/firebase';
+import { trackPageView } from './services/analytics';
+
+// RouteChangeTracker component to handle route changes
+const RouteChangeTracker = () => {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Track page view in Firebase Analytics
+    trackEvent('page_view', { page_path: location.pathname });
+    
+    // Also track in GA4
+    trackPageView(location.pathname);
+    
+    // Send to console during development
+    console.log('Page view tracked:', location.pathname);
+  }, [location]);
+  
+  return null;
+};
 
 function App() {
-  // Track page views
-  useEffect(() => {
-    // Track initial pageview
-    trackEvent('page_view', { page_path: window.location.pathname });
-    
-    // Listen for route changes
-    const handleRouteChange = () => {
-      trackEvent('page_view', { page_path: window.location.pathname });
-    };
-    
-    // Add event listener for popstate (back/forward navigation)
-    window.addEventListener('popstate', handleRouteChange);
-    
-    return () => {
-      window.removeEventListener('popstate', handleRouteChange);
-    };
-  }, []);
-
   return (
     <Router>
+      <RouteChangeTracker />
       <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow">

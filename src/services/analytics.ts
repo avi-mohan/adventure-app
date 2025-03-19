@@ -1,7 +1,7 @@
 // To use this service, install the package: npm install react-ga4
 
-// This is a mock implementation - you need to replace G-XXXXXXXXXX with your actual GA tracking ID
-const GA_TRACKING_ID = 'G-XXXXXXXXXX';
+
+const GA_TRACKING_ID = 'G-21EGK0LWDG';
 
 /**
  * Initialize Google Analytics
