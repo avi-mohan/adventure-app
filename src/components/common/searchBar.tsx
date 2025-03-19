@@ -16,7 +16,7 @@ const SearchBar = () => {
   const [isAgeDropdownOpen, setIsAgeDropdownOpen] = useState(false);
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   
-  // Close dropdowns when clicking outside
+  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (ageDropdownRef.current && !ageDropdownRef.current.contains(event.target as Node)) {
@@ -116,112 +116,132 @@ const SearchBar = () => {
   
   return (
     <div className="relative z-20 w-full max-w-5xl mx-auto px-4">
-      {/* Mobile-friendly search form */}
       <div className="bg-white rounded-lg shadow-lg">
-        <form onSubmit={handleSearch} className="w-full">
-          {/* Desktop layout - horizontal */}
-          <div className="hidden md:grid md:grid-cols-3 md:gap-4 md:p-4">
-            {/* Where filter */}
-            <div className="col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Where</label>
-              <input
-                type="text"
-                name="location"
-                placeholder="Search activities"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                value={searchParams.location}
-                onChange={handleInputChange}
-              />
+        <form onSubmit={handleSearch}>
+          {/* Switch between mobile and desktop layouts */}
+          <div className="flex flex-col md:flex-row">
+            {/* On mobile, input fields stack vertically with full width */}
+            {/* On desktop, input fields are in a row with dividers */}
+            
+            {/* Where field */}
+            <div className="w-full md:flex-1 p-3">
+              <label className="block text-sm font-medium mb-1 md:hidden">Where</label>
+              <div className="md:px-2 md:py-1">
+                <div className="hidden md:block text-sm font-medium">Where</div>
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Search activities"
+                  className="w-full bg-transparent border md:border-none rounded-lg md:rounded-none px-3 py-2 md:p-0 focus:outline-none focus:ring-2 focus:ring-pink-500 md:focus:ring-0"
+                  value={searchParams.location}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
             
-            {/* Activity Type filter */}
-            <div className="col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Activity Type</label>
-              <div className="relative">
-                <button
-                  type="button"
-                  className="w-full px-3 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 flex justify-between items-center"
+            {/* Divider for desktop */}
+            <div className="hidden md:block w-px h-10 bg-gray-300 self-center"></div>
+            
+            {/* Activity Type field */}
+            <div ref={typeDropdownRef} className="w-full md:flex-1 p-3">
+              <label className="block text-sm font-medium mb-1 md:hidden">Activity Type</label>
+              <div className="relative md:px-2 md:py-1">
+                <div className="hidden md:block text-sm font-medium">Activity Type</div>
+                <div 
+                  className="w-full bg-transparent border md:border-none rounded-lg md:rounded-none px-3 py-2 md:p-0 flex items-center justify-between cursor-pointer"
                   onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
                 >
-                  <span>{searchParams.activityType || 'All Types'}</span>
+                  <span className="text-gray-700">{searchParams.activityType || 'All Types'}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
-                    className="h-5 w-5 text-gray-400" 
-                    viewBox="0 0 20 20" 
-                    fill="currentColor"
+                    className={`h-4 w-4 text-gray-500 transition-transform ${isTypeDropdownOpen ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
                   >
-                    <path 
-                      fillRule="evenodd" 
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
-                      clipRule="evenodd" 
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                </button>
+                </div>
+                
+                {/* Activity Type dropdown */}
                 {isTypeDropdownOpen && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                    {activityTypes.map(type => (
-                      <button
-                        key={type}
-                        type="button"
-                        className="w-full px-3 py-2 text-left hover:bg-gray-100"
-                        onClick={() => handleActivityTypeSelect(type === 'All Types' ? '' : type)}
-                      >
-                        {type}
-                      </button>
-                    ))}
+                  <div className="absolute left-0 right-0 mt-1 bg-white rounded-lg shadow-lg p-2 z-30">
+                    <div className="max-h-60 overflow-y-auto">
+                      {activityTypes.map((type) => (
+                        <div 
+                          key={type} 
+                          className="p-2 hover:bg-gray-50 rounded cursor-pointer"
+                          onClick={() => handleActivityTypeSelect(type === 'All Types' ? '' : type)}
+                        >
+                          {type}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
             </div>
             
-            {/* Age Group filter */}
-            <div className="col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Age Group</label>
-              <div className="relative">
-                <button
-                  type="button"
-                  className="w-full px-3 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 flex justify-between items-center"
+            {/* Divider for desktop */}
+            <div className="hidden md:block w-px h-10 bg-gray-300 self-center"></div>
+            
+            {/* Age Group field */}
+            <div ref={ageDropdownRef} className="w-full md:flex-1 p-3">
+              <label className="block text-sm font-medium mb-1 md:hidden">Age Group</label>
+              <div className="relative md:px-2 md:py-1">
+                <div className="hidden md:block text-sm font-medium">Age Group</div>
+                <div 
+                  className="w-full bg-transparent border md:border-none rounded-lg md:rounded-none px-3 py-2 md:p-0 flex items-center justify-between cursor-pointer"
                   onClick={() => setIsAgeDropdownOpen(!isAgeDropdownOpen)}
                 >
-                  <span>{getSelectedAgeGroupsText()}</span>
+                  <span className="text-gray-700">{getSelectedAgeGroupsText()}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
-                    className="h-5 w-5 text-gray-400" 
-                    viewBox="0 0 20 20" 
-                    fill="currentColor"
+                    className={`h-4 w-4 text-gray-500 transition-transform ${isAgeDropdownOpen ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
                   >
-                    <path 
-                      fillRule="evenodd" 
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
-                      clipRule="evenodd" 
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                </button>
+                </div>
+                
+                {/* Age dropdown */}
                 {isAgeDropdownOpen && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-2">
-                    {ageGroups.map(group => (
-                      <label key={group.value} className="flex items-center p-2 hover:bg-gray-100">
-                        <input
-                          type="checkbox"
-                          className="mr-2 h-4 w-4 text-pink-500 rounded"
-                          checked={searchParams.ageGroups.includes(group.value)}
-                          onChange={() => handleAgeGroupToggle(group.value)}
-                        />
-                        <span>{group.label}</span>
-                      </label>
-                    ))}
-                    {searchParams.ageGroups.length > 0 && (
-                      <div className="flex justify-between mt-2 pt-2 border-t border-gray-200">
-                        <button
-                          type="button"
-                          className="text-sm text-gray-500"
-                          onClick={() => setSearchParams(prev => ({ ...prev, ageGroups: [] }))}
+                  <div className="absolute right-0 mt-1 w-64 bg-white rounded-lg shadow-lg p-3 z-30">
+                    <div className="space-y-2">
+                      {ageGroups.map((ageGroup) => (
+                        <label 
+                          key={ageGroup.value} 
+                          className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
                         >
-                          Clear
-                        </button>
-                        <button
+                          <input
+                            type="checkbox"
+                            checked={searchParams.ageGroups.includes(ageGroup.value)}
+                            onChange={() => handleAgeGroupToggle(ageGroup.value)}
+                            className="mr-3 h-4 w-4 text-pink-500 focus:ring-pink-400 rounded"
+                          />
+                          <span>{ageGroup.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                    
+                    {searchParams.ageGroups.length > 0 && (
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex justify-between">
+                        <button 
                           type="button"
-                          className="text-sm text-pink-600 font-medium"
+                          className="text-sm text-gray-500 hover:text-gray-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSearchParams(prev => ({ ...prev, ageGroups: [] }));
+                          }}
+                        >
+                          Clear selection
+                        </button>
+                        
+                        <button
+                          type="button" 
+                          className="text-sm text-pink-500 font-medium hover:text-pink-600"
                           onClick={() => setIsAgeDropdownOpen(false)}
                         >
                           Apply
@@ -232,134 +252,20 @@ const SearchBar = () => {
                 )}
               </div>
             </div>
-          </div>
-          
-          {/* Mobile layout - vertical */}
-          <div className="md:hidden p-4 space-y-4">
-            {/* Where input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Where</label>
-              <input
-                type="text"
-                name="location"
-                placeholder="Search activities"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                value={searchParams.location}
-                onChange={handleInputChange}
-              />
-            </div>
             
-            {/* Activity Type dropdown */}
-            <div ref={typeDropdownRef}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Activity Type</label>
-              <div className="relative">
-                <button
-                  type="button"
-                  className="w-full px-3 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 flex justify-between items-center"
-                  onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
-                >
-                  <span>{searchParams.activityType || 'All Types'}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className={`h-5 w-5 text-gray-400 transition-transform ${isTypeDropdownOpen ? 'rotate-180' : ''}`}
-                    viewBox="0 0 20 20" 
-                    fill="currentColor"
-                  >
-                    <path 
-                      fillRule="evenodd" 
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
-                      clipRule="evenodd" 
-                    />
-                  </svg>
-                </button>
-                {isTypeDropdownOpen && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                    {activityTypes.map(type => (
-                      <button
-                        key={type}
-                        type="button"
-                        className="w-full px-3 py-2 text-left hover:bg-gray-100"
-                        onClick={() => handleActivityTypeSelect(type === 'All Types' ? '' : type)}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+            {/* Search button */}
+            <div className="p-3 md:p-0 md:self-center">
+              <button 
+                type="submit"
+                className="w-full md:w-auto bg-pink-500 hover:bg-pink-600 text-white py-2 px-4 rounded-lg md:rounded-full md:p-4 flex items-center justify-center transition-colors"
+                aria-label="Search"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-5 md:w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                </svg>
+                <span className="ml-2 md:hidden">Search</span>
+              </button>
             </div>
-            
-            {/* Age Group dropdown */}
-            <div ref={ageDropdownRef}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Age Group</label>
-              <div className="relative">
-                <button
-                  type="button"
-                  className="w-full px-3 py-2 text-left border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 flex justify-between items-center"
-                  onClick={() => setIsAgeDropdownOpen(!isAgeDropdownOpen)}
-                >
-                  <span>{getSelectedAgeGroupsText()}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className={`h-5 w-5 text-gray-400 transition-transform ${isAgeDropdownOpen ? 'rotate-180' : ''}`}
-                    viewBox="0 0 20 20" 
-                    fill="currentColor"
-                  >
-                    <path 
-                      fillRule="evenodd" 
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" 
-                      clipRule="evenodd" 
-                    />
-                  </svg>
-                </button>
-                {isAgeDropdownOpen && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-2">
-                    {ageGroups.map(group => (
-                      <label key={group.value} className="flex items-center p-2 hover:bg-gray-100">
-                        <input
-                          type="checkbox"
-                          className="mr-2 h-4 w-4 text-pink-500 rounded"
-                          checked={searchParams.ageGroups.includes(group.value)}
-                          onChange={() => handleAgeGroupToggle(group.value)}
-                        />
-                        <span>{group.label}</span>
-                      </label>
-                    ))}
-                    {searchParams.ageGroups.length > 0 && (
-                      <div className="flex justify-between mt-2 pt-2 border-t border-gray-200">
-                        <button
-                          type="button"
-                          className="text-sm text-gray-500"
-                          onClick={() => setSearchParams(prev => ({ ...prev, ageGroups: [] }))}
-                        >
-                          Clear
-                        </button>
-                        <button
-                          type="button"
-                          className="text-sm text-pink-600 font-medium"
-                          onClick={() => setIsAgeDropdownOpen(false)}
-                        >
-                          Apply
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          
-          {/* Search button for both layouts */}
-          <div className="px-4 pb-4">
-            <button
-              type="submit"
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white py-2 px-4 rounded-lg font-bold transition-colors flex items-center justify-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-              </svg>
-              Search
-            </button>
           </div>
         </form>
       </div>
