@@ -10,27 +10,34 @@ const ActivityListing = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Parse URL parameters
+  const query = new URLSearchParams(location.search);
+  const typeFilter = query.get('type');
+  const searchTerm = query.get('search');
+  
   const [activeFilters, setActiveFilters] = useState<{
     category: string | null;
     ageRange: string | null;
     priceRange: string | null;
+    search: string | null;
   }>({
-    category: null,
-    ageRange: null,
-    priceRange: null,
+    category: typeFilter,
+    ageRange: query.get('age'),
+    priceRange: query.get('price'),
+    search: searchTerm
   });
   
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  // Extract query params on initial load
+  // Update filters when URL changes
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    
     setActiveFilters({
-      category: params.get('type'),
-      ageRange: params.get('age'),
-      priceRange: params.get('price'),
+      category: query.get('type'),
+      ageRange: query.get('age'),
+      priceRange: query.get('price'),
+      search: query.get('search')
     });
   }, [location.search]);
   
@@ -121,9 +128,20 @@ const ActivityListing = () => {
     { label: 'Over $100', value: 'over-100', min: 100, max: Infinity }
   ];
   
-  // Filter activities based on active filters
+  // Filter activities based on active filters and search
   const filteredActivities = useMemo(() => {
     return activities.filter(activity => {
+      // Search filter
+      if (activeFilters.search) {
+        const search = activeFilters.search.toLowerCase();
+        const matchesSearch = 
+          activity.title.toLowerCase().includes(search) || 
+          activity.description.toLowerCase().includes(search) ||
+          (activity.category && activity.category.toLowerCase().includes(search));
+          
+        if (!matchesSearch) return false;
+      }
+      
       // Category filter
       if (activeFilters.category && activity.category !== activeFilters.category) {
         return false;
@@ -173,6 +191,18 @@ const ActivityListing = () => {
     const params = new URLSearchParams(location.search);
     params.set('type', category);
     
+    // Preserve search term if it exists
+    if (activeFilters.search) {
+      params.set('search', activeFilters.search);
+    }
+    
+    navigate({ pathname: location.pathname, search: params.toString() });
+  };
+
+  // Clear search function
+  const clearSearch = () => {
+    const params = new URLSearchParams(location.search);
+    params.delete('search');
     navigate({ pathname: location.pathname, search: params.toString() });
   };
 
@@ -238,13 +268,26 @@ const ActivityListing = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Explore Adventures</h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <h1 className="text-3xl font-bold mb-2 md:mb-0">Explore Adventures</h1>
         
         {/* Applied filters */}
-        {activeFilters.category && (
-          <div className="flex items-center">
-            <span className="text-sm text-gray-600 mr-2">Filtered by:</span>
+        <div className="flex flex-wrap gap-2">
+          {activeFilters.search && (
+            <span className="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium flex items-center">
+              Search: {activeFilters.search}
+              <button 
+                onClick={clearSearch}
+                className="ml-2 text-pink-600 hover:text-pink-800"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </span>
+          )}
+          
+          {activeFilters.category && (
             <span className="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm font-medium flex items-center">
               {activeFilters.category}
               <button 
@@ -260,20 +303,20 @@ const ActivityListing = () => {
                 </svg>
               </button>
             </span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       
       {/* Category filters */}
       {categories.length > 0 && (
-        <div className="mb-8">
+        <div className="mb-8 overflow-x-auto">
           <h2 className="text-lg font-medium mb-4">Categories</h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-nowrap gap-2 pb-2">
             {categories.map(category => (
               <button
                 key={category}
                 onClick={() => handleCategoryChange(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium ${
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
                   activeFilters.category === category
                     ? 'bg-pink-500 text-white'
                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
@@ -338,7 +381,7 @@ const ActivityListing = () => {
       {/* Show "no results" message if filters return empty */}
       {activities.length > 0 && filteredActivities.length === 0 && (
         <div className="text-center py-12">
-          <h3 className="text-xl font-bold mb-2">No activities match your filters</h3>
+          <h3 className="text-xl font-bold mb-2">No activities match your search</h3>
           <p className="text-gray-600 mb-6">Try changing your search criteria or explore all activities.</p>
           <button 
             onClick={() => {
