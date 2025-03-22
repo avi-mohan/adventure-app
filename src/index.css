@@ -1,5 +1,26 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Add these lines to the end of your src/index.css file */
 
-/* Custom styles below */
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  /* Custom shadow for the search bar */
+  .airbnb-search-shadow {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Animation for search button hover */
+  .search-btn-hover {
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .search-btn-hover:hover {
+    transform: scale(1.05);
+  }
