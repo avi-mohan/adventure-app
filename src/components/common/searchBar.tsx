@@ -1,21 +1,28 @@
 // src/components/common/searchBar.tsx
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../services/firebase';
 
 const SearchBar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const ageDropdownRef = useRef<HTMLDivElement>(null);
   const typeDropdownRef = useRef<HTMLDivElement>(null);
   
+  // Parse existing URL parameters
+  const query = new URLSearchParams(location.search);
+  
   const [searchParams, setSearchParams] = useState({
-    location: '',
-    activityType: '',
-    ageGroups: [] as string[]
+    location: query.get('location') || '',
+    activityType: query.get('type') || '',
+    ageGroups: query.getAll('age') || []
   });
   
   const [isAgeDropdownOpen, setIsAgeDropdownOpen] = useState(false);
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   
   // Handle window resize
   useEffect(() => {
@@ -27,6 +34,38 @@ const SearchBar = () => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
+  }, []);
+  
+  // Fetch available categories from Firebase
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const activitiesCollection = collection(db, 'activities');
+        const snapshot = await getDocs(activitiesCollection);
+        
+        if (!snapshot.empty) {
+          // Extract unique categories
+          const categories = snapshot.docs
+            .map(doc => doc.data().category)
+            .filter((category): category is string => !!category);
+            
+          // Create an array of unique categories
+          const uniqueCategories: string[] = [];
+          categories.forEach(category => {
+            if (!uniqueCategories.includes(category)) {
+              uniqueCategories.push(category);
+            }
+          });
+          
+          setAvailableCategories(uniqueCategories.sort());
+          console.log('Available categories for search:', uniqueCategories);
+        }
+      } catch (error) {
+        console.error('Error fetching categories for search bar:', error);
+      }
+    };
+    
+    fetchCategories();
   }, []);
   
   // Close dropdown when clicking outside
@@ -60,6 +99,11 @@ const SearchBar = () => {
       activityType: type
     }));
     setIsTypeDropdownOpen(false);
+    
+    // Immediately perform a search when selecting a type
+    if (type) {
+      performSearch({ activityType: type });
+    }
   };
   
   const handleAgeGroupToggle = (ageGroup: string) => {
@@ -82,32 +126,53 @@ const SearchBar = () => {
     });
   };
   
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Search params:', searchParams);
+  const performSearch = (overrideParams: {activityType?: string} = {}) => {
+    const paramsToUse = { ...searchParams, ...overrideParams };
     
     // Build query string
     const queryParams = new URLSearchParams();
-    if (searchParams.location) queryParams.append('location', searchParams.location);
-    if (searchParams.activityType) queryParams.append('type', searchParams.activityType);
-    searchParams.ageGroups.forEach(age => queryParams.append('age', age));
+    if (paramsToUse.location) queryParams.append('location', paramsToUse.location);
+    if (paramsToUse.activityType) queryParams.append('type', paramsToUse.activityType);
+    paramsToUse.ageGroups.forEach(age => queryParams.append('age', age));
     
     // Navigate to activities page with search params
     navigate(`/activities?${queryParams.toString()}`);
   };
   
-  // Activity type options
-  const activityTypes = [
-    'All Types',
-    'Camp',
-    'Class',
-    'Workshop',
-    'Adventure',
-    'Sport',
-    'Arts & Crafts',
-    'STEM',
-    'Special Event'
-  ];
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    performSearch();
+  };
+  
+  const handleActivityTagClick = (tagName: string) => {
+    // Navigate with only the activity type filter
+    navigate(`/activities?type=${encodeURIComponent(tagName)}`);
+  };
+  
+  // Activity type options - dynamically build from Firebase categories
+  const getActivityTypeOptions = () => {
+    // Always include "All Types" as the first option
+    const options = ['All Types'];
+    
+    // Add all available categories from Firebase
+    if (availableCategories.length > 0) {
+      options.push(...availableCategories);
+    } else {
+      // Fallback options if categories haven't loaded yet
+      options.push(
+        'Adventure',
+        'Indoor Play',
+        'Camp',
+        'Class',
+        'Workshop',
+        'Sport',
+        'Arts & Crafts',
+        'STEM'
+      );
+    }
+    
+    return options;
+  };
   
   // Age group options
   const ageGroups = [
@@ -116,14 +181,43 @@ const SearchBar = () => {
     { value: '12+', label: 'Teens (12+ years)' }
   ];
   
-  // Activity tags for mobile view
-  const activityTags = [
-    { id: 'outdoor', name: 'Outdoor', icon: '🌿' },
-    { id: 'camps', name: 'Camps', icon: '⛺' },
-    { id: 'arts', name: 'Arts', icon: '🎨' },
-    { id: 'sports', name: 'Sports', icon: '⚽' },
-    { id: 'stem', name: 'STEM', icon: '🔬' }
-  ];
+  // Generate activity tags for mobile view - based on available categories
+  const generateActivityTags = () => {
+    // Default tags with icons 
+    const defaultTags = [
+      { id: 'adventure', name: 'Adventure', icon: '🏔️' },
+      { id: 'indoor', name: 'Indoor Play', icon: '🧩' },
+      { id: 'camp', name: 'Camp', icon: '⛺' },
+      { id: 'art', name: 'Arts & Crafts', icon: '🎨' },
+      { id: 'sport', name: 'Sport', icon: '⚽' }
+    ];
+    
+    // If we have categories from Firebase
+    if (availableCategories.length > 0) {
+      // Create tags based on available categories (up to 5)
+      const categoryTags = availableCategories.slice(0, 5).map(category => {
+        // Try to match with default tags to get appropriate icons
+        const matchedDefault = defaultTags.find(tag => 
+          tag.name.toLowerCase() === category.toLowerCase() ||
+          category.toLowerCase().includes(tag.id.toLowerCase())
+        );
+        
+        // Use matched icon or generic icon
+        const icon = matchedDefault?.icon || '🏷️';
+        
+        return {
+          id: category.toLowerCase().replace(/\s+/g, '-'),
+          name: category,
+          icon: icon
+        };
+      });
+      
+      return categoryTags;
+    }
+    
+    // Return default tags if no categories are available
+    return defaultTags;
+  };
   
   // Format selected age groups for display
   const getSelectedAgeGroupsText = () => {
@@ -137,6 +231,8 @@ const SearchBar = () => {
   };
   
   const renderMobileView = () => {
+    const activityTags = generateActivityTags();
+    
     return (
       <div className="px-4 py-3">
         <div 
@@ -153,13 +249,13 @@ const SearchBar = () => {
           </div>
         </div>
         
-        {/* Activity Tags */}
+        {/* Activity Tags - now with proper filtering */}
         <div className="mt-6 flex justify-between overflow-x-auto pb-2 no-scrollbar">
           {activityTags.map(tag => (
             <div 
               key={tag.id} 
               className="flex flex-col items-center justify-center mr-6 last:mr-0 cursor-pointer"
-              onClick={() => navigate(`/activities?type=${tag.name}`)}
+              onClick={() => handleActivityTagClick(tag.name)}
             >
               <div className="text-2xl mb-1">{tag.icon}</div>
               <div className="text-xs whitespace-nowrap">{tag.name}</div>
@@ -214,7 +310,7 @@ const SearchBar = () => {
               {isTypeDropdownOpen && (
                 <div className="absolute left-0 right-0 mt-2 bg-white rounded-xl shadow-xl p-4 z-30 border border-gray-200">
                   <div className="max-h-60 overflow-y-auto">
-                    {activityTypes.map((type) => (
+                    {getActivityTypeOptions().map((type) => (
                       <div 
                         key={type} 
                         className="p-3 hover:bg-gray-100 rounded-lg cursor-pointer text-gray-700"
