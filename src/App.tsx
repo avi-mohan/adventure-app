@@ -8,12 +8,12 @@ import ActivityListing from './pages/ActivityListing';
 import Booking from './pages/Booking';
 import ThankYou from './pages/ThankYou';
 import Resources from './pages/Resources';
-import ArticlePage from './pages/ArticlePage'; // Import the new ArticlePage component
+import ArticlePage from './pages/ArticlePage'; // New article page
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminActivities from './pages/AdminActivities';
-import AdminResources from './pages/AdminResources'; // You'll need to create this component
-import ArticleEditor from './components/admin/ArticleEditor'; // Import the new ArticleEditor component
+import AdminResources from './pages/AdminResources'; // New admin resources page
+import ArticleEditor from './components/admin/ArticleEditor'; // New article editor
 
 // Components
 import Header from './components/common/header';
@@ -56,7 +56,7 @@ function App() {
             <Route path="/booking/:id" element={<Booking />} />
             <Route path="/thank-you" element={<ThankYou />} />
             <Route path="/resources" element={<Resources />} />
-            <Route path="/resources/:id" element={<ArticlePage />} /> {/* New article page route */}
+            <Route path="/resources/:id" element={<ArticlePage />} /> {/* New article route */}
             <Route path="/admin/login" element={<Login />} />
             
             {/* Protected Admin Routes */}
@@ -72,7 +72,7 @@ function App() {
               </ProtectedRoute>
             } />
             
-            {/* New admin resources routes */}
+            {/* New admin resource routes */}
             <Route path="/admin/resources" element={
               <ProtectedRoute>
                 <AdminResources />
