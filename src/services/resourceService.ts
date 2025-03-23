@@ -88,42 +88,7 @@ export const getResourceById = async (id: string): Promise<Resource | null> => {
   }
 };
 
-// Add a Medium article to resources
-export const addMediumArticle = async (articleData: any): Promise<Resource> => {
-  try {
-    console.log('Adding medium article to resources:', articleData);
-    
-    // Create the resource document with all needed fields
-    const resourceData = {
-      title: articleData.title,
-      description: articleData.description,
-      category: articleData.category || 'Development',
-      readTime: articleData.readTime || '5 min read',
-      imageUrl: articleData.imageUrl || 'https://source.unsplash.com/random/600x400/?kids,learning',
-      externalLink: articleData.externalLink,
-      featured: articleData.featured || false,
-      tags: articleData.tags || [],
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-    
-    // Add the document to Firestore
-    const docRef = await addDoc(resourcesCollection, resourceData);
-    console.log('Resource added with ID:', docRef.id);
-    
-    return {
-      id: docRef.id,
-      ...resourceData,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    } as Resource;
-  } catch (error) {
-    console.error('Error adding resource:', error);
-    throw error;
-  }
-};
-
-// Create new resource
+// Create new resource (for internal or external articles)
 export const createResource = async (resourceData: ResourceFormData): Promise<Resource> => {
   try {
     const resourceWithDates = {
@@ -142,6 +107,31 @@ export const createResource = async (resourceData: ResourceFormData): Promise<Re
     };
   } catch (error) {
     console.error('Error creating resource:', error);
+    throw error;
+  }
+};
+
+// Create article with content (alias for createResource for clarity)
+export const createArticle = async (resourceData: ResourceFormData): Promise<Resource> => {
+  return createResource(resourceData);
+};
+
+// Update article content
+export const updateArticleContent = async (id: string, content: string): Promise<Resource> => {
+  try {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    
+    const updateData = {
+      content,
+      updatedAt: serverTimestamp()
+    };
+    
+    await updateDoc(docRef, updateData);
+    
+    const updatedDoc = await getDoc(docRef);
+    return convertResource(updatedDoc);
+  } catch (error) {
+    console.error('Error updating article content:', error);
     throw error;
   }
 };
@@ -220,6 +210,67 @@ export const getResourcesByTags = async (tags: string[]): Promise<Resource[]> =>
       });
   } catch (error) {
     console.error('Error fetching resources by tags:', error);
+    throw error;
+  }
+};
+
+// Get related articles by tag
+export const getRelatedArticles = async (currentId: string, tags: string[], maxResults = 3): Promise<Resource[]> => {
+  try {
+    if (!tags.length) return [];
+    
+    // Get resources that have at least one matching tag, excluding current article
+    const snapshot = await getDocs(resourcesCollection);
+    
+    return snapshot.docs
+      .map(convertResource)
+      .filter(resource => {
+        // Skip current article
+        if (resource.id === currentId) return false;
+        
+        // Check for tag match
+        return resource.tags?.some((tag: string) => tags.includes(tag));
+      })
+      .slice(0, maxResults); // Limit the number of related articles
+  } catch (error) {
+    console.error('Error fetching related articles:', error);
+    throw error;
+  }
+};
+
+// Get latest articles
+export const getLatestArticles = async (limitCount = 5): Promise<Resource[]> => {
+  try {
+    const q = query(
+      resourcesCollection,
+      orderBy('createdAt', 'desc'),
+      limit(limitCount)
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(convertResource);
+  } catch (error) {
+    console.error('Error fetching latest articles:', error);
+    throw error;
+  }
+};
+
+// Convert a Medium article to an internal article (for migration)
+export const convertExternalToInternal = async (id: string, content: string): Promise<Resource> => {
+  try {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    
+    const updateData = {
+      content,
+      // Keep externalLink as a reference but use internal content
+      updatedAt: serverTimestamp()
+    };
+    
+    await updateDoc(docRef, updateData);
+    
+    const updatedDoc = await getDoc(docRef);
+    return convertResource(updatedDoc);
+  } catch (error) {
+    console.error('Error converting external to internal article:', error);
     throw error;
   }
 };
