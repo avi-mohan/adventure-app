@@ -1,3 +1,5 @@
+// Update to App.tsx to add the new admin routes
+
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 
@@ -9,6 +11,7 @@ import ThankYou from './pages/ThankYou';
 import Resources from './pages/Resources';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminActivities from './pages/AdminActivities'; // Add this import
 
 // Components
 import Header from './components/common/header';
@@ -57,6 +60,13 @@ function App() {
             <Route path="/admin/dashboard" element={
               <ProtectedRoute>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            
+            {/* Add the new admin activities route */}
+            <Route path="/admin/activities" element={
+              <ProtectedRoute>
+                <AdminActivities />
               </ProtectedRoute>
             } />
           
