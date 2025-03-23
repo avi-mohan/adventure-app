@@ -14,7 +14,6 @@ const AdminResources: React.FC = () => {
   // Form state
   const [formData, setFormData] = useState<ResourceFormData>({
     title: '',
-    description: '',
     category: 'Development',
     readTime: '5 min read',
     imageUrl: 'https://source.unsplash.com/random/600x400/?kids,learning',
@@ -104,7 +103,6 @@ const AdminResources: React.FC = () => {
       // Reset form
       setFormData({
         title: '',
-        description: '',
         category: 'Development',
         readTime: '5 min read',
         imageUrl: 'https://source.unsplash.com/random/600x400/?kids,learning',
@@ -180,22 +178,6 @@ const AdminResources: React.FC = () => {
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  required
-                />
-              </div>
-              
-              {/* Description */}
-              <div className="col-span-full">
-                <label className="block text-gray-700 font-medium mb-2" htmlFor="description">
-                  Description*
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                   required
                 />

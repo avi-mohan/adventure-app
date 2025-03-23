@@ -2,12 +2,11 @@
 export interface Resource {
   id: string;
   title: string;
-  description: string;
   category: string;
   readTime: string;
   imageUrl: string;
   externalLink?: string;
-  content?: string; // For resources with internal content
+  content?: string; // HTML content for internal articles
   featured?: boolean;
   tags?: string[];
   createdAt: Date;

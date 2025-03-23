@@ -4,7 +4,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getResourceById } from '../services/resourceService';
 import { Resource } from '../models/Resource';
 import { trackEvent } from '../services/firebase';
-import '../styles/article.css'; // Import new article-specific styles
+import '../styles/article.css'; // Import article-specific styles
 
 const ArticlePage = () => {
   const { id } = useParams<{ id: string }>();
@@ -132,17 +132,6 @@ const ArticlePage = () => {
             />
           </div>
         )}
-        
-        {/* Author Info - Simple version without Medium buttons */}
-        <div className="article-author">
-          <div className="author-avatar">
-            <img src="/kidobee-avatar.png" alt="Kidobee" />
-          </div>
-          <div className="author-details">
-            <div className="author-name">Kidobee</div>
-            <div className="article-date">{formatDate(resource.createdAt?.toString())}</div>
-          </div>
-        </div>
         
         {/* Article Content */}
         <div className="article-content">

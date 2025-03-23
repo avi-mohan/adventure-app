@@ -51,7 +51,6 @@ const ResourceCard = ({ resource }: ResourceCardProps) => {
           <span className="text-gray-500 text-sm">{resource.readTime}</span>
         </div>
         <h3 className="text-xl font-bold mb-2">{resource.title}</h3>
-        <p className="text-gray-600 mb-4">{resource.description}</p>
         <div className="text-pink-500 font-medium flex items-center">
           {useInternalLink ? "Read Article" : "Read on External Site"}
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
