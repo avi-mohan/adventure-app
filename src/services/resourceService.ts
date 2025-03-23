@@ -180,8 +180,8 @@ export const searchResources = async (
       .map(convertResource)
       .filter(resource => {
         const matchesSearch = !searchTerm || 
-          resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          resource.description.toLowerCase().includes(searchTerm.toLowerCase());
+  resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  (resource.content && resource.content.toLowerCase().includes(searchTerm.toLowerCase()));
           
         const matchesCategory = !categories.length || 
           categories.includes(resource.category);
