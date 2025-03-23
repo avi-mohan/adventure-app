@@ -40,6 +40,14 @@ const ArticlePage = () => {
     fetchResource();
   }, [id]);
   
+  // Handle external link redirect - moved outside conditional
+  useEffect(() => {
+    // Only redirect if resource exists, has external link, and no content
+    if (resource && resource.externalLink && !resource.content) {
+      window.location.href = resource.externalLink;
+    }
+  }, [resource]);
+  
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 animate-pulse">
@@ -67,13 +75,6 @@ const ArticlePage = () => {
       </div>
     );
   }
-  
-  // If the article has an externalLink and no content, redirect to external site
-  useEffect(() => {
-    if (resource && resource.externalLink && !resource.content) {
-      window.location.href = resource.externalLink;
-    }
-  }, [resource]);
   
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
